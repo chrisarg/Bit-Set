@@ -21,6 +21,7 @@ my %WriteMakefileArgs = (
     "FFI::Platypus::Buffer" => 0,
     "FFI::Platypus::Memory" => 0,
     "FFI::Platypus::Record" => 0,
+    "constant" => 0,
     "strict" => 0,
     "warnings" => 0
   },
@@ -45,6 +46,7 @@ my %FallbackPrereqs = (
   "FFI::Platypus::Record" => 0,
   "File::Spec" => 0,
   "Test::More" => 0,
+  "constant" => 0,
   "strict" => 0,
   "warnings" => 0
 );

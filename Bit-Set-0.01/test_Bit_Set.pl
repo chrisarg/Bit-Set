@@ -9,7 +9,7 @@ use FFI::Platypus::Buffer qw(window);
 
 
 # Create a new bitset with 1024 bits
-my $bitset1 = Bit::Set->new(-1024);
+my $bitset1 = Bit::Set->new(1024);
 my $bitset2 = Bit::Set->new(1024);
 
 # Set some bits
