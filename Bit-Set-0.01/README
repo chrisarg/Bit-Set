@@ -454,8 +454,8 @@ VIBECODING A FFI API
 
     Vibe coding a Perl interface to a foreign library- Part 1
     <https://chrisarg.github.io/Killing-It-with-PERL/2025/06/30/Vibe-coding-
-    a-Perl-interface-to-a-foreign-library-Part-1.html> Vibe coding a Perl
-    interface to a foreign library - Part 2
+    a-Perl-interface-to-a-foreign-library-Part-1.html> =item Vibe coding a
+    Perl interface to a foreign library - Part 2
     <https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-
     a-Perl-interface-to-a-foreign-library-Part-2.html>
 
@@ -510,10 +510,25 @@ VIBECODING A FFI API
 
     Claude did get *most* things right:
 
+    *    it generated 3 chunks of code corresponding to `Bit::Set`,
+         `Bit::Set::DB` and the single test file =item * the table driven
+         approach was implemented effectively reducing the number of lines
+         of code that had to be written =item * The checked runtime
+         exceptions in the C interface were incorporated in the Perl using a
+         wrapper function that was provided to `FFI::Platypus` `attach`.
+         =item * The `FFI::Platypus::Record` was correctly selected into the
+         implementation for the C structure that passes options for the
+         CPU/GPU enhanced container functions. =item * the POD documentation
+         was generated as a skeleton using the grouping of function in the
+         README file. The documentation was no frills, a very simple
+         repetition of what is available from Bit
+         <https://github.com/chrisarg/Bit>, but it is enough to get one
+         started.
+
     However, the code itself would not work, requiring a few minor tweaks
     that are summarized below:
 
-    1. Incorporating runtime exceptions
+    1 Incorporating runtime exceptions
         The relevant section is shown below and exhibits numerous problems.
 
             for my $name ( sort keys %functions ) {
@@ -558,7 +573,7 @@ VIBECODING A FFI API
         the end of the loop, and pushing the code reference without the
         'wrapper => ' part into the arguments of the attach function.
 
-    2. The fat comma strikes again
+    2 The fat comma strikes again
         The container module (`Bit::Set::DB`) uses a C structure to pass
         options to the CPU/hardware accelerator device . This C structure is
         passed by value and thus should be passed as a
@@ -590,7 +605,7 @@ VIBECODING A FFI API
         arguments to make the "keys" unique. The fix is rather simple, i.e.
         one simply reverses the order of the arguments.
 
-    3. Forgetting the proper way to register records with FFI
+    3 Forgetting the proper way to register records with FFI
         Interestingly enough, the chatbot failed to properly register the
         type of the record with FFI. In the original output, it included the
         line: $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' =>
@@ -651,8 +666,7 @@ SEE ALSO
         counts using the libpocnt library and GPU operations for packed
         containers of (collections) of Bit(sets).
 
-        item Alien::Bit <https://metacpan.org/pod/Alien::Bit>
-
+    Alien::Bit <https://metacpan.org/pod/Alien::Bit>
         This distribution provides the library Bit so that it can be used by
         other Perl distributions that are on CPAN. It will download Bit from
         Github and will build the (static and dynamic) versions of the
