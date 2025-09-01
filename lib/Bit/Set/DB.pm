@@ -388,7 +388,7 @@ __END__
 
 =head1 NAME
 
-Bit::Set::DB - Perl interface for bitset containers from the 'bit' C library
+Bit::Set::DB - Perl interface for bitset containers from the C<Bit> C library
 
 =head1 SYNOPSIS
 
@@ -412,16 +412,20 @@ Bit::Set::DB - Perl interface for bitset containers from the 'bit' C library
 
 =head1 DESCRIPTION
 
-This module provides a procedural Perl interface to the C library 'bit.h',
+This module provides a procedural Perl interface to the C library C<Bit>,
 for creating and manipulating containers of bitsets (BitDB). It uses
 C<FFI::Platypus> to wrap the C functions and C<Alien::Bit> to locate and link
-to the C library.
+to the C library. The main purpose of this library is to provide multithreaded
+and hardware accelerated (e.g. GPU) versions of container operations e.g. forming
+the population count of the intersection of two containers of bitsets.
 
 The API is a direct mapping of the C functions. For detailed semantics of each
 function, please refer to the C<bit.h> header file documentation.
 
 Runtime checks on arguments are performed if the C<DEBUG> environment variable
 is set to a true value.
+
+GPU offloading is disabled if you set up the C<NOGPU> environment variable.
 
 =head1 FUNCTIONS
 
@@ -504,35 +508,90 @@ Example for C<opts>:
       # ... other flags
   );
 
-=over 4
+Perform the respective set operation count on the CPU:
+
+=over 5
 
 =item B<BitDB_inter_count_cpu(db1, db2, opts)>
+
 =item B<BitDB_union_count_cpu(db1, db2, opts)>
+
 =item B<BitDB_diff_count_cpu(db1, db2, opts)>
+
 =item B<BitDB_minus_count_cpu(db1, db2, opts)>
 
-Perform the respective set operation count on the CPU.
+=back
+
+Perform the respective set operation count on the GPU:
+
+=over 5
 
 =item B<BitDB_inter_count_gpu(db1, db2, opts)>
+
 =item B<BitDB_union_count_gpu(db1, db2, opts)>
+
 =item B<BitDB_diff_count_gpu(db1, db2, opts)>
+
 =item B<BitDB_minus_count_gpu(db1, db2, opts)>
 
-Perform the respective set operation count on the GPU.
+=back
+
+Perform the respective set operation count on the CPU and store results in C<buffer>:
+
+=over 5
 
 =item B<BitDB_inter_count_store_cpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_union_count_store_cpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_diff_count_store_cpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_minus_count_store_cpu(db1, db2, buffer, opts)>
 
-Perform the respective set operation count on the CPU and store results in C<buffer>.
+=back
+
+Perform the respective set operation count on the GPU and store results in C<buffer>:
+
+=over 5
 
 =item B<BitDB_inter_count_store_gpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_union_count_store_gpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_diff_count_store_gpu(db1, db2, buffer, opts)>
+
 =item B<BitDB_minus_count_store_gpu(db1, db2, buffer, opts)>
 
-Perform the respective set operation count on the GPU and store results in C<buffer>.
+=back
+
+=head1 SEE ALSO
+
+=over 4
+
+=item L<Bit::Set|https://metacpan.org/pod/Bit::Set>
+
+C<Bit::Set> is a Perl module that provides a high-level interface for working with 
+bitsets. It is built on top of the Bit library and offers a more user-friendly 
+API for common bitset operations. It is the parent module of C<Bit::Set::DB> and
+provides further details about the vibecoding of the C<Bit::Set::DB> module.
+
+=item L<Bit|https://github.com/chrisarg/Bit>
+
+Bit is a high-performance, uncompressed bitset implementation in C, optimized 
+for modern architectures. The library provides an efficient way to create, 
+manipulate, and query bitsets with a focus on performance and memory alignment. 
+The API and the interface is largely based on David Hanson's Bit_T library 
+discussed in Chapter 13 of "C Interfaces and Implementations", 
+Addison-Wesley ISBN 0-201-49841-3 extended to incorporate additional operations 
+(such as counts on unions/differences/intersections of sets), 
+fast population counts using the libpocnt library and GPU operations for packed 
+containers of (collections) of Bit(sets).
+
+=item L<Alien::Bit|https://metacpan.org/pod/Alien::Bit>
+
+This distribution provides the library Bit so that it can be used by other Perl 
+distributions that are on CPAN. It will download Bit from Github and will build 
+the (static and dynamic) versions of the library for use by other Perl modules.
 
 =back
 

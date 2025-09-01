@@ -354,12 +354,12 @@ Bit::Set - Perl interface for bitset functions from the 'bit' C library
 
 =head1 DESCRIPTION
 
-This module provides a procedural Perl interface to the C library 'bit.h',
+This module provides a procedural Perl interface to the C library L<Bit|https://github.com/chrisarg/Bit>,
 for creating and manipulating bitsets. It uses C<FFI::Platypus> to wrap the
 C functions and C<Alien::Bit> to locate and link to the C library.
 
 The API is a direct mapping of the C functions. For detailed semantics of each
-function, please refer to the C<bit.h> header file documentation.
+function, please refer to L<Bit|https://github.com/chrisarg/Bit>.
 
 Runtime checks on arguments are performed if the C<DEBUG> environment variable
 is set to a true value when installing the code.
@@ -399,7 +399,7 @@ Loads an externally allocated bitset into a new Bit_T structure.
 =item B<Bit_extract(set, buffer)>
 
 Extracts the bitset from a Bit_T into an externally allocated buffer.
-Look at EXAMPLES for usage of the load and extract functions using FFI::Platypus.
+Look at EXAMPLES for usage of the load and extract functions using C<FFI::Platypus>.
 
 =back
 
@@ -532,7 +532,7 @@ creating a new bitset.
 
 =head1 EXAMPLES
 
-Examples of the use of the Bit::Set module. Many of these examples are lifted 
+Examples of the use of the C<Bit::Set> module. Many of these examples are lifted 
 from the test suite.
 Others are Perl "translations" of the original C benchmarks.
 
@@ -559,7 +559,7 @@ bits into a bitset.
 =item Example 2: Comparison operations between bitsets
 
 This example illustrates the use of the comparison functions provided by the 
-Bit::Set module. The equality comparison function is shown for simplicity, but 
+C<Bit::Set> module. The equality comparison function is shown for simplicity, but 
 the example can serve as blue print for
 other comparisons functions e.g. less than equal to.
 
@@ -585,7 +585,7 @@ other comparisons functions e.g. less than equal to.
 =item Example 3: Set operations on bitsets
 
 This example demonstrates the use of set operations provided by the 
-Bit::Set module. In this example, we will form the union of two bitsets 
+C<Bit::Set> module. In this example, we will form the union of two bitsets 
 into a new bitset. Then we will make sure that the union bitset contains 
 all the bits from both original bitsets.
 
@@ -667,7 +667,7 @@ or advanced, SIMD accelerated algorithms for efficient population counting.
 =item Example 5: Loading and extracting a bitset
 
 A slightly more complex example, in which we create a bitset, set a few bits,
- extract them into a buffer (allocated via FFI::Platypus::Buffer, though other
+ extract them into a buffer (allocated via C<FFI::Platypus::Buffer>, though other
  possibilities exist e.g. through Task::MemManager) and then checking that their
  values is correct. The load example reverses the logic, i.e. we allocate the
  buffer, set its value using pack, put the buffer into a bitset and test the
@@ -880,8 +880,8 @@ markdown file. The prompt used was the following:
     relevant check involves ONLY DEBUG, otherwise the code may not be stripped.
     Things to adhere to during the implementation:
 
-    The functions for the Bit_T, should end up in the module Bit::Set, and those for 
-    Bit_DB to Bit::Set::DB .
+    The functions for the Bit_T, should end up in the module C<Bit::Set>, and those for 
+    Bit_DB to C<Bit::Set::DB> .
     1. Ensure that you implement the Perl interface to all the functions in the C 
     interface, i.e. don't implement some functions and then tell me the others are 
     implemented similarly! Reflect that you have implemented all the functions by 
@@ -900,20 +900,20 @@ markdown file. The prompt used was the following:
     4. When implementing a function, do provide the POD documentation for it. 
     However, generate the POD after you have implemented the functions.
     5. After you have implemented the modules, generate a simple test that will 
-    generate a Bit::Set of capacity of 1024 bits, set the first, second and 5th one 
+    generate a C<Bit::Set> of capacity of 1024 bits, set the first, second and 5th one 
     and see if the popcount is equal to 3.
 
 Claude did get *most* things right:
 
 =over 5
 
-=item * it generated 3 chunks of code corresponding to `Bit::Set`,  `Bit::Set::DB` and the single test file
+=item * it generated 3 chunks of code corresponding to C<Bit::Set>,  C<Bit::Set::DB> and the single test file
 
 =item * the table driven approach was implemented effectively reducing the number of lines of code that had to be written
 
-=item * The checked runtime exceptions in the C interface were incorporated in the Perl using a wrapper function that was provided to `FFI::Platypus` `attach`.
+=item * The checked runtime exceptions in the C interface were incorporated in the Perl using a wrapper function that was provided to C<FFI::Platypus> attach.
 
-=item * The `FFI::Platypus::Record` was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
+=item * The C<FFI::Platypus::Record> was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
 
 =item * the POD documentation was generated as a skeleton using the grouping of function in the README file. 
 The documentation was no frills, a very simple repetition of what is available from L<Bit|https://github.com/chrisarg/Bit>, but it is enough to
@@ -946,14 +946,14 @@ The relevant section is shown below and exhibits numerous problems.
 When the DEBUG variable is not set, it is unclear whether the check for DEBUG
 will strip the code that adds the runtime exception wrapper at compile time.
 The pattern discussed in the Perl documentation states that a simple test
-of the form `if (DEBUG) { ... }` will strip everything within the block, but
-will a test of the form `if ( DEBUG && exists $spec->{check} ) { ... }` do the 
-same? 
-Secondly, the attachment of the wrapper function to the FFI call is also a 
+of the form C< if (DEBUG) { ... }> will strip everything within the block, but
+will a test of the form C<< if ( DEBUG && exists $spec->{check} ) { ... } >> do the
+same?
+Secondly, the attachment of the wrapper function to the FFI call is also a
 concern: it takes place early in the process, before the DEBUG check is made.
-Thirdly, the snippet `push @attach_args, wrapper => sub { ... }` as it pushes
-*two* arguments into the function call for `attach`. 
-If one looks into the documentation for L<FFI::Platypus::attach|https://metacpan.org/pod/FFI::Platypus#attach>, 
+Thirdly, the snippet C<< push @attach_args, wrapper => sub { ... } >> as it pushes
+*two* arguments into the function call for C< attach >.
+If one looks into the documentation for L<FFI::Platypus::attach|https://metacpan.org/pod/FFI::Platypus#attach>,
 
     $ffi->attach($name => \@argument_types => $return_type);
     $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type);
@@ -963,9 +963,9 @@ If one looks into the documentation for L<FFI::Platypus::attach|https://metacpan
     $ffi->attach([$address => $perl_name] => \@argument_types => $return_type, \&wrapper);
 
 it becomes clear that the maintainer is using the fat comma instead of the
-regular comma to pass consecutive arguments into the `attach` function. 
+regular comma to pass consecutive arguments into the C<attach> function. 
 However, the chatbot is confusing the syntax and adding a hashlike key-value 
-pair when pushing the arguments of `attach`.
+pair when pushing the arguments of C<attach>.
 
 All these problems are reasonably easy to fix, by breaking the test involving 
 DEBUG into two nested ifs, moving the attach invocation at the end of the loop,
@@ -974,10 +974,10 @@ of the attach function.
 
 =item * The fat comma strikes again
 
-The container module (`Bit::Set::DB`) uses a C structure to pass options to the 
+The container module (C<Bit::Set::DB>) uses a C structure to pass options to the 
 CPU/hardware accelerator device . This C structure is passed by value and thus 
-should be passed as a `FFI::Platypus::Record`, created either as a separate 
-module file, or nested in the `Bit::Set::DB` module. The code that was actually
+should be passed as a C<FFI::Platypus::Record>, created either as a separate 
+module file, or nested in the C<Bit::Set::DB> module. The code that was actually
 generated by Claude looked like this:
 
     {
@@ -995,7 +995,7 @@ generated by Claude looked like this:
     }
 
 In the documentation for L<FFI::Platypus::Record|https://metacpan.org/pod/FFI::Platypus::Record#record_layout_1>, one can clearly see that the function record_layout_1 
-receives arguments as `record_layout_1($type => $name, ... );`, i.e. the fat comma 
+receives arguments as C<< record_layout_1($type => $name, ... ); >> , i.e. the fat comma 
 is used to separate consecutive arguments to the function, and not as part of the 
 definition of a hash. However Claude must "think" that it is dealing with a hash,
 as it reverses the order of the arguments to make the "keys" unique.
@@ -1016,8 +1016,8 @@ rather than the correct
 =back
 
 Having fixed these errors, I proceeded to generate a Perl version of the C
-test suite, by providing as context the (fixed) modules : `Bit::Set` and 
-`Bit::Set::DB` as well as the C source code for "test_bit.c". The actual
+test suite, by providing as context the (fixed) modules : C<Bit::Set> and 
+C<Bit::Set::DB> as well as the C source code for "test_bit.c". The actual
 prompt was the single liner:
 
     Convert this test file written in C to Perl, using the Bit::Set and Bit::Set::DB modules. 
@@ -1041,7 +1041,7 @@ following code is supposed to test the extraction of bits from a bitset:
 
 However, the code is utterly wrong (and segfaults!) as one has to provide
 the memory address of the buffer, not the Perl scalar value. The fix is to
-generate the buffer as a Perl string and then use `FFI::Platypus::Buffer` 
+generate the buffer as a Perl string and then use C<FFI::Platypus::Buffer> 
 to extract the memory address of the storage buffer used by the Perl scalar:
 
     my $scalar = "\0" x $buffer_size;    
