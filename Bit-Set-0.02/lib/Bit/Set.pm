@@ -1,6 +1,6 @@
 #!/home/chrisarg/perl5/perlbrew/perls/current/bin/perl
 package Bit::Set;
-$Bit::Set::VERSION = '0.01';
+$Bit::Set::VERSION = '0.02';
 use strict;
 use warnings;
 use FFI::Platypus;
@@ -337,7 +337,7 @@ Bit::Set - Perl interface for bitset functions from the 'bit' C library
 
 =head1 VERSION
 
-version 0.01
+version 0.02
 
 =head1 SYNOPSIS
 

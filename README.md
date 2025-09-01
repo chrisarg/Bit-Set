@@ -4,7 +4,7 @@ Bit::Set - Perl interface for bitset functions from the 'bit' C library
 
 # VERSION
 
-version 0.01
+version 0.02
 
 # SYNOPSIS
 
@@ -490,8 +490,8 @@ of this writing (late August - early September 2025), and did not find much
 of a difference. I ultimately settled for Claude 4.0, since the Claude 3.7
 Thinking model had been used in my "vibecoding" GitHub page posts:
 
-[Vibe coding a Perl interface to a foreign library- Part 1](https://chrisarg.github.io/Killing-It-with-PERL/2025/06/30/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-1.html)
-[Vibe coding a Perl interface to a foreign library - Part 2](https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-2.html)
+- [Vibe coding a Perl interface to a foreign library- Part 1](https://chrisarg.github.io/Killing-It-with-PERL/2025/06/30/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-1.html)
+=item [Vibe coding a Perl interface to a foreign library - Part 2](https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-2.html)
 
 In these explorations, agentic LLMs were found particularly problematic, often 
 stalling to generate a solution, focusing on the wrong thing when tests were
@@ -543,10 +543,18 @@ markdown file. The prompt used was the following:
 
 Claude did get \*most\* things right:
 
+- it generated 3 chunks of code corresponding to \`Bit::Set\`,  \`Bit::Set::DB\` and the single test file
+- the table driven approach was implemented effectively reducing the number of lines of code that had to be written
+- The checked runtime exceptions in the C interface were incorporated in the Perl using a wrapper function that was provided to \`FFI::Platypus\` \`attach\`.
+- The \`FFI::Platypus::Record\` was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
+- the POD documentation was generated as a skeleton using the grouping of function in the README file. 
+The documentation was no frills, a very simple repetition of what is available from [Bit](https://github.com/chrisarg/Bit), but it is enough to
+get one started. 
+
 However, the code itself would not work, requiring a few minor tweaks that are
 summarized below:
 
-- 1. Incorporating runtime exceptions
+- Incorporating runtime exceptions
 
     The relevant section is shown below and exhibits numerous problems. 
 
@@ -592,7 +600,7 @@ summarized below:
     and pushing the code reference without the 'wrapper => ' part into the arguments
     of the attach function.
 
-- 2. The fat comma strikes again
+- The fat comma strikes again
 
     The container module (\`Bit::Set::DB\`) uses a C structure to pass options to the 
     CPU/hardware accelerator device . This C structure is passed by value and thus 
@@ -621,14 +629,16 @@ summarized below:
     as it reverses the order of the arguments to make the "keys" unique.
     The fix is rather simple, i.e. one simply reverses the order of the arguments.
 
-- 3. Forgetting the proper way to register records with FFI
+- Forgetting the proper way to register records with FFI
 
     Interestingly enough, the chatbot failed to properly register the type of the 
     record with FFI. In the original output, it included the line:
-        $ffi->type( 'Bit::Set::DB::SETOP\_COUNT\_OPTS' => 'SETOP\_COUNT\_OPTS\_t' )
+
+        $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' => 'SETOP_COUNT_OPTS_t' ) 
 
     rather than the correct
-        $ffi->type( 'record(Bit::Set::DB::SETOP\_COUNT\_OPTS)' => 'SETOP\_COUNT\_OPTS\_t' )
+
+        $ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
 
 Having fixed these errors, I proceeded to generate a Perl version of the C
 test suite, by providing as context the (fixed) modules : \`Bit::Set\` and 
@@ -680,7 +690,7 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
     fast population counts using the libpocnt library and GPU operations for packed 
     containers of (collections) of Bit(sets).
 
-    item [Alien::Bit](https://metacpan.org/pod/Alien::Bit)
+- [Alien::Bit](https://metacpan.org/pod/Alien::Bit)
 
     This distribution provides the library Bit so that it can be used by other Perl 
     distributions that are on CPAN. It will download Bit from Github and will build 

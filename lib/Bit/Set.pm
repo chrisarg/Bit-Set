@@ -908,9 +908,13 @@ Claude did get *most* things right:
 =over 5
 
 =item * it generated 3 chunks of code corresponding to `Bit::Set`,  `Bit::Set::DB` and the single test file
+
 =item * the table driven approach was implemented effectively reducing the number of lines of code that had to be written
+
 =item * The checked runtime exceptions in the C interface were incorporated in the Perl using a wrapper function that was provided to `FFI::Platypus` `attach`.
+
 =item * The `FFI::Platypus::Record` was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
+
 =item * the POD documentation was generated as a skeleton using the grouping of function in the README file. 
 The documentation was no frills, a very simple repetition of what is available from L<Bit|https://github.com/chrisarg/Bit>, but it is enough to
 get one started. 
@@ -922,7 +926,7 @@ summarized below:
 
 =over 4
 
-=item 1 Incorporating runtime exceptions
+=item * Incorporating runtime exceptions
 
 The relevant section is shown below and exhibits numerous problems. 
 
@@ -968,7 +972,7 @@ DEBUG into two nested ifs, moving the attach invocation at the end of the loop,
 and pushing the code reference without the 'wrapper => ' part into the arguments
 of the attach function.
 
-=item 2 The fat comma strikes again
+=item * The fat comma strikes again
 
 The container module (`Bit::Set::DB`) uses a C structure to pass options to the 
 CPU/hardware accelerator device . This C structure is passed by value and thus 
@@ -997,13 +1001,15 @@ definition of a hash. However Claude must "think" that it is dealing with a hash
 as it reverses the order of the arguments to make the "keys" unique.
 The fix is rather simple, i.e. one simply reverses the order of the arguments.
 
-=item 3 Forgetting the proper way to register records with FFI
+=item * Forgetting the proper way to register records with FFI
 
 Interestingly enough, the chatbot failed to properly register the type of the 
 record with FFI. In the original output, it included the line:
-    $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' => 'SETOP_COUNT_OPTS_t' )
+
+    $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' => 'SETOP_COUNT_OPTS_t' ) 
 
 rather than the correct
+
     $ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
 
 
