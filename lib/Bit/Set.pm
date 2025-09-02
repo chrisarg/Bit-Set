@@ -543,7 +543,7 @@ Others are Perl "translations" of the original C benchmarks.
 Simple example in which we create, set and test for setting of individual 
 bits into a bitset.
 
-  use Bit::Set;
+  use Bit::Set qw(:all);
 
   my $bitset = Bit_new(64);
   Bit_set($bitset, 1);
@@ -729,7 +729,6 @@ application in C.
     use warnings;
     use Time::HiRes  qw(gettimeofday tv_interval);
     use Bit::Set     qw(:all);
-    use Bit::Set::DB qw(:all);
 
     # Constants
     use constant BPQW => 64;    # bits per qword (8 bytes * 8 bits)
@@ -1012,6 +1011,43 @@ rather than the correct
 
     $ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
 
+=item * Naive interpretation of returned pointers in the FFI interface
+
+A subtle LLM mistake concerns the handling of returned pointers from FFI calls. 
+A function in C that is declared as C<int* foo(...);> may use the returned
+pointer to provide a single value, or an array of values. Consider the proposal
+for C<BitDB_count> in the table driven interface:
+
+    BitDB_count => {
+        args  => ['Bit_DB_T'],
+        ret   => 'int*',
+        check => sub {
+            my ($set) = @_;
+            die "BitDB_count: set cannot be NULL" if !defined $set;
+        }
+    }
+
+When C<FFI::Platypus> encounters this return type, it will interpret the type
+as a hash reference to a Perl scalar as stated explicitly in the L<documentation|https://metacpan.org/pod/FFI::Platypus#Pointers>.
+The correct way to handle this is to declare the function as returning an L<opaque pointer|https://metacpan.org/pod/FFI::Platypus#Opaque-Pointers-(buffers-and-strings)>.
+In particular, one would rewrite the last snippet as:
+
+    BitDB_count => {
+        args  => ['Bit_DB_T'],
+        ret   => 'opaque',
+        check => sub {
+            my ($set) = @_;
+            die "BitDB_count: set cannot be NULL" if !defined $set;
+        }
+    }
+
+By doing so, one ends up receiving the memory address of the buffer as a Perl 
+scalar value, rather than a reference to Perl scalar, which must be dereferenced
+to yield the first (and only the first!) element of the array that is accessible
+through the pointer. Please refer to the documentation of L<FFI::Platypus|https://metacpan.org/pod/FFI::Platypus> for 
+more information on working with opaque pointers.
+The documentation of L<Bit::Set::DB|https://metacpan.org/pod/Bit::Set::DB> contains examples and usage patterns for 
+working with arrays returned from the Perl interface to C<Bit>.
 
 =back
 
