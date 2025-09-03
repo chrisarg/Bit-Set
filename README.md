@@ -4,7 +4,7 @@ Bit::Set - Perl interface for bitset functions from the 'bit' C library
 
 # VERSION
 
-version 0.03
+version 0.04
 
 # SYNOPSIS
 
@@ -490,7 +490,7 @@ of a difference. I ultimately settled for Claude 4.0, since the Claude 3.7
 Thinking model had been used in my "vibecoding" GitHub page posts:
 
 - [Vibe coding a Perl interface to a foreign library- Part 1](https://chrisarg.github.io/Killing-It-with-PERL/2025/06/30/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-1.html)
-=item [Vibe coding a Perl interface to a foreign library - Part 2](https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-2.html)
+- [Vibe coding a Perl interface to a foreign library - Part 2](https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-2.html)
 
 In these explorations, agentic LLMs were found particularly problematic, often 
 stalling to generate a solution, focusing on the wrong thing when tests were
@@ -546,9 +546,7 @@ Claude did get \*most\* things right:
 - the table driven approach was implemented effectively reducing the number of lines of code that had to be written
 - The checked runtime exceptions in the C interface were incorporated in the Perl using a wrapper function that was provided to `FFI::Platypus` attach.
 - The `FFI::Platypus::Record` was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
-- the POD documentation was generated as a skeleton using the grouping of function in the README file. 
-The documentation was no frills, a very simple repetition of what is available from [Bit](https://github.com/chrisarg/Bit), but it is enough to
-get one started. 
+- the POD documentation was skeleton but at least it followed the grouping in the  [Bit](https://github.com/chrisarg/Bit) README file. 
 
 However, the code itself would not work, requiring a few minor tweaks that are
 summarized below:

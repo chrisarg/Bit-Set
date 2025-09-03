@@ -850,6 +850,7 @@ Thinking model had been used in my "vibecoding" GitHub page posts:
 =over 5
 
 =item L<Vibe coding a Perl interface to a foreign library- Part 1|https://chrisarg.github.io/Killing-It-with-PERL/2025/06/30/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-1.html>
+
 =item L<Vibe coding a Perl interface to a foreign library - Part 2|https://chrisarg.github.io/Killing-It-with-PERL/2025/07/04/Vibe-coding-a-Perl-interface-to-a-foreign-library-Part-2.html>
 
 =back
@@ -914,9 +915,7 @@ Claude did get *most* things right:
 
 =item * The C<FFI::Platypus::Record> was correctly selected into the implementation for the C structure that passes options for the CPU/GPU enhanced container functions.
 
-=item * the POD documentation was generated as a skeleton using the grouping of function in the README file. 
-The documentation was no frills, a very simple repetition of what is available from L<Bit|https://github.com/chrisarg/Bit>, but it is enough to
-get one started. 
+=item * the POD documentation was skeleton but at least it followed the grouping in the  L<Bit|https://github.com/chrisarg/Bit> README file. 
 
 =back
 
