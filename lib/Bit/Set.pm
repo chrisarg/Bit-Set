@@ -1098,6 +1098,18 @@ Addison-Wesley ISBN 0-201-49841-3 extended to incorporate additional operations
 fast population counts using the libpocnt library and GPU operations for packed 
 containers of (collections) of Bit(sets).
 
+=item L<Bit::Set::OO|https://metacpan.org/pod/Bit::Set::OO>
+
+Object Oriented interface to the Bit::Set module.
+
+=item L<Bit::Set::DB|https://metacpan.org/pod/Bit::Set::DB>
+
+Procedural interface to the containerized operations of the Bit library.
+
+=item L<Bit::Set::DB::OO|https://metacpan.org/pod/Bit::Set::DB::OO>
+
+Object Oriented interface to the Bit::Set::DB module.
+
 
 =back
 

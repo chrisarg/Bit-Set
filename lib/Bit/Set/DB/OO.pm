@@ -235,11 +235,11 @@ Note that the methods are created in the Bit::Set::DB namespace.
 
 =over 4
 
-=item B<Bit::Set::DB->new(length, num_of_bitsets)>
+=item B<Bit::Set::DB-E<gt>new(length, num_of_bitsets)>
 
 Creates a new bitset container for C<num_of_bitsets> bitsets, each of C<length>.
 
-=item B<Bit::Set::DB->load(length, num_of_bitsets, buffer address - numeric)>
+=item B<Bit::Set::DB-E<gt>load(length, num_of_bitsets, buffer address - numeric)>
 
 Creates a new bitset container for C<num_of_bitsets> bitsets, each of C<length>, 
 from an external buffer. The buffer address should point to a memory region 
@@ -251,19 +251,19 @@ large enough to hold all bitsets.
 
 =over 4
 
-=item B<$container->length(set)>
+=item B<$container-E<gt>length(set)>
 
 Returns the length of bitsets in the container.
 
-=item B<$container->nelem()>
+=item B<$container-E<gt>nelem()>
 
 Returns the number of bitsets in the container.
 
-=item B<$container->count_at(index)>
+=item B<$container-E<gt>count_at(index)>
 
 Returns the population count of the bitset at the given C<index>.
 
-=item B<$container->count()>
+=item B<$container-E<gt>count()>
 
 Returns a pointer to an array of population counts for all bitsets 
 in the container.
@@ -274,27 +274,27 @@ in the container.
 
 =over 4
 
-=item B<$container->get_from(index)>
+=item B<$container-E<gt>get_from(index)>
 
 Returns a bitset from the container at the given C<index>.
 
-=item B<$container->put_at(index, bitset)>
+=item B<$container-E<gt>put_at(index, bitset)>
 
 Puts a C<bitset> into the container at the given C<index>.
 
-=item B<$container->extract_from(index, buffer)>
+=item B<$container-E<gt>extract_from(index, buffer)>
 
 Extracts a bitset from the container at C<index> into a C<buffer>.
 
-=item B<$container->replace_at(index, buffer)>
+=item B<$container-E<gt>replace_at(index, buffer)>
 
 Replaces a bitset in the container at C<index> with the contents of a C<buffer>.
 
-=item B<$container->clear()>
+=item B<$container-E<gt>clear()>
 
 Clears all bitsets in the container.
 
-=item B<$container->clear_at(index)>
+=item B<$container-E<gt>clear_at(index)>
 
 Clears the bitset at a given C<index> in the container.
 
@@ -317,13 +317,13 @@ Perform the respective set operation count on the CPU:
 
 =over 5
 
-=item B<$container->inter_count_cpu(container2, opts)>
+=item B<$container-E<gt>inter_count_cpu(container2, opts)>
 
-=item B<$container->union_count_cpu(container2, opts)>
+=item B<$container-E<gt>union_count_cpu(container2, opts)>
 
-=item B<$container->diff_count_cpu(container2, opts)>
+=item B<$container-E<gt>diff_count_cpu(container2, opts)>
 
-=item B<$container->minus_count_cpu(container2, opts)>
+=item B<$container-E<gt>minus_count_cpu(container2, opts)>
 
 =back
 
@@ -331,13 +331,13 @@ Perform the respective set operation count on the GPU:
 
 =over 5
 
-=item B<$container->inter_count_gpu(container2, opts)>
+=item B<$container-E<gt>inter_count_gpu(container2, opts)>
 
-=item B<$container->union_count_gpu(container2, opts)>
+=item B<$container-E<gt>union_count_gpu(container2, opts)>
 
-=item B<$container->diff_count_gpu(container2, opts)>
+=item B<$container-E<gt>diff_count_gpu(container2, opts)>   
 
-=item B<$container->minus_count_gpu(container2, opts)>
+=item B<$container-E<gt>minus_count_gpu(container2, opts)>
 
 =back
 
@@ -345,13 +345,13 @@ Perform the respective set operation count on the CPU and store results in C<buf
 
 =over 5
 
-=item B<$container->inter_count_store_cpu(container2, buffer, opts)>
+=item B<$container-E<gt>inter_count_store_cpu(container2, buffer, opts)>
 
-=item B<$container->union_count_store_cpu(container2, buffer, opts)>
+=item B<$container-E<gt>union_count_store_cpu(container2, buffer, opts)>
 
-=item B<$container->diff_count_store_cpu(container2, buffer, opts)>
+=item B<$container-E<gt>diff_count_store_cpu(container2, buffer, opts)>
 
-=item B<$container->minus_count_store_cpu(container2, buffer, opts)>
+=item B<$container-E<gt>minus_count_store_cpu(container2, buffer, opts)>
 
 =back
 
@@ -359,15 +359,16 @@ Perform the respective set operation count on the GPU and store results in C<buf
 
 =over 5
 
-=item B<$container->inter_count_store_gpu(container2, buffer, opts)>
+=item B<$container-E<gt>inter_count_store_gpu(container2, buffer, opts)>
 
-=item B<$container->union_count_store_gpu(container2, buffer, opts)>
+=item B<$container-E<gt>union_count_store_gpu(container2, buffer, opts)>
 
-=item B<$container->diff_count_store_gpu(container2, buffer, opts)>
+=item B<$container-E<gt>diff_count_store_gpu(container2, buffer, opts)>
 
-=item B<$container->minus_count_store_gpu(container2, buffer, opts)>
+=item B<$container-E<gt>minus_count_store_gpu(container2, buffer, opts)>
 
 =back
+
 
 =head1 EXAMPLES
 
@@ -506,6 +507,15 @@ containers of (collections) of Bit(sets).
 C<Bit::Set> is a Perl module that provides a high-level I<procedural> interface 
 for working with bitsets. It is built on top of the Bit library and offers a 
 more user-friendly Perl API for common bitset operations.
+
+=item L<Bit::Set::OO|https://metacpan.org/pod/Bit::Set::OO>
+
+Object Oriented interface to the Bit::Set module.
+
+=item L<Bit::Set::DB|https://metacpan.org/pod/Bit::Set::DB>
+
+Procedural interface to the containerized operations of the Bit library.
+
 
 =back
 

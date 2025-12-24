@@ -4,7 +4,7 @@ Bit::Set - Perl procedureal interface to the 'bit' C library
 
 # VERSION
 
-version 0.06
+version 0.09
 
 # SYNOPSIS
 
@@ -715,6 +715,18 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
     (such as counts on unions/differences/intersections of sets), 
     fast population counts using the libpocnt library and GPU operations for packed 
     containers of (collections) of Bit(sets).
+
+- [Bit::Set::OO](https://metacpan.org/pod/Bit::Set::OO)
+
+    Object Oriented interface to the Bit::Set module.
+
+- [Bit::Set::DB](https://metacpan.org/pod/Bit::Set::DB)
+
+    Procedural interface to the containerized operations of the Bit library.
+
+- [Bit::Set::DB::OO](https://metacpan.org/pod/Bit::Set::DB::OO)
+
+    Object Oriented interface to the Bit::Set::DB module.
 
 # TO DO
 

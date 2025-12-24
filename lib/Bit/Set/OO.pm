@@ -168,6 +168,7 @@ package Bit::Set {
     }
 }
 
+
 1;
 
 __END__
@@ -217,18 +218,18 @@ are created in the Bit::Set namespace.
 
 =over 4
 
-=item B<Bit::Set->new(length)>
+=item B<Bit::Set-E<gt>new(length)>
 
 Creates a new bitset with the specified capacity (=length) in bits. The object 
 is of type Bit::Set (not Bit::Set::OO).
 
 
-=item B<Bit::Set->load(length, buffer)>
+=item B<Bit::Set-E<gt>load(length, buffer)>
 
 Loads an externally allocated bitset into a new Bit_T structure in C and returns
 it as a Perl object of type Bit::Set.
 
-=item B<$bitset->extract(buffer)>
+=item B<$bitset-E<gt>extract(buffer)>
 
 Extracts the bitset from a Bit_T into an externally allocated buffer.
 Look at EXAMPLES for usage of the load and extract functions using C<FFI::Platypus>.
@@ -239,14 +240,14 @@ Look at EXAMPLES for usage of the load and extract functions using C<FFI::Platyp
 
 =over 4
 
-=item B<Bit::Set->buffer_size(length)>
+=item B<Bit::Set-E<gt>buffer_size(length)>
 
 Returns the number of bytes needed to store a bitset of given length.
 
-=item B<$bitset->length()>
+=item B<$bitset-E<gt>length()>
 Returns the length (capacity) of the bitset in bits.
 
-=item B<$bitset->count()>
+=item B<$bitset-E<gt>count()>
 
 Returns the population count (number of set bits) of the bitset.
 
@@ -256,39 +257,39 @@ Returns the population count (number of set bits) of the bitset.
 
 =over 4
 
-=item B<$bitset->aset(indices, n)>
+=item B<$bitset-E<gt>aset(indices, n)>
 
 Sets an array of bits specified by indices.
 
-=item B<$bitset->bset(index)>
+=item B<$bitset-E<gt>bset(index)>
 
 Sets a single bit at the specified index to 1.
 
-=item B<$bitset->aclear(indices, n)>
+=item B<$bitset-E<gt>aclear(indices, n)>
 
 Clears an array of bits specified by indices.
 
-=item B<$bitset->bclear(index)>
+=item B<$bitset-E<gt>bclear(index)>
 
 Clears a single bit at the specified index to 0.
 
-=item B<$bitset->clear(lo, hi)>
+=item B<$bitset-E<gt>clear(lo, hi)>
 
 Clears a range of bits from lo to hi (inclusive).
 
-=item B<$bitset->get(index)>
+=item B<$bitset-E<gt>get(index)>
 
 Returns the value of the bit at the specified index.
 
-=item B<$bitset->not(lo, hi)>
+=item B<$bitset-E<gt>not(lo, hi)>
 
 Inverts a range of bits from lo to hi (inclusive).
 
-=item B<$bitset->put(n, val)>
+=item B<$bitset-E<gt>put(n, val)>
 
 Sets the nth bit to val and returns the previous value.
 
-=item B<$bitset->set(lo, hi)>
+=item B<$bitset-E<gt>set(lo, hi)>
 
 Sets a range of bits from lo to hi (inclusive) to 1.
 
@@ -298,15 +299,15 @@ Sets a range of bits from lo to hi (inclusive) to 1.
 
 =over 4
 
-=item B<$bitset->eq(other)>
+=item B<$bitset-E<gt>eq(other)>
 
 Returns 1 if the bitset other is equal to this bitset, 0 otherwise.
 
-=item B<$bitset->leq(other)>
+=item B<$bitset-E<gt>leq(other)>
 
 Returns 1 if this bitset is a subset of or equal to other, 0 otherwise.
 
-=item B<$bitset->lt(other)>
+=item B<$bitset-E<gt>lt(other)>
 
 Returns 1 if this bitset is a proper subset of other, 0 otherwise.
 
@@ -316,20 +317,20 @@ Returns 1 if this bitset is a proper subset of other, 0 otherwise.
 
 =over 4
 
-=item B<$bitset->diff(other)>
+=item B<$bitset-E<gt>diff(other)>
 
 Returns a new bitset containing the difference of this bitset and other.
 
-=item B<$bitset->inter(other)>
+=item B<$bitset-E<gt>inter(other)>
 
 Returns a new bitset containing the intersection of this bitset and other
 .
 
-=item B<$bitset->minus(other)>
+=item B<$bitset-E<gt>minus(other)>
 
 Returns a new bitset containing the symmetric difference of this bitset and other.
 
-=item B<$bitset->union(other)>
+=item B<$bitset-E<gt>union(other)>
 
 Returns a new bitset containing the union of this bitset and other.
 
@@ -339,22 +340,22 @@ Returns a new bitset containing the union of this bitset and other.
 
 =over 4
 
-=item B<$bitset->diff_count(other)>
+=item B<$bitset-E<gt>diff_count(other)>
 
 Returns the population count of the difference of this bitset and other without 
 creating a new bitset.
 
-=item B<$bitset->inter_count(other)>
+=item B<$bitset-E<gt>inter_count(other)>
 
 Returns the population count of the intersection of this bitset and other without 
 creating a new bitset.
 
-=item B<$bitset->minus_count(other)>
+=item B<$bitset-E<gt>minus_count(other)>
 
 Returns the population count of the symmetric difference of this bitset and other 
 without creating a new bitset.
 
-=item B<$bitset->union_count(other)>
+=item B<$bitset-E<gt>union_count(other)>
 
 Returns the population count of the union of this bitset and other without 
 creating a new bitset.
@@ -446,6 +447,14 @@ containers of (collections) of Bit(sets).
 C<Bit::Set> is a Perl module that provides a high-level I<procedural> interface 
 for working with bitsets. It is built on top of the Bit library and offers a 
 more user-friendly Perl API for common bitset operations.
+
+=item L<Bit::Set::DB|https://metacpan.org/pod/Bit::Set::DB>
+
+Procedural interface to the containerized operations of the Bit library.
+
+=item L<Bit::Set::DB::OO|https://metacpan.org/pod/Bit::Set::DB::OO>
+
+Object Oriented interface to the Bit::Set::DB module.
 
 =back
 
