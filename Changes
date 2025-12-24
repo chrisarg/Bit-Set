@@ -2,6 +2,11 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+0.06      2025-12-24 08:45:37-07:00 America/Denver
+- Provided OO interface to Bit::Set via Bit::Set::OO module
+- Provided OO interface to Bit::Set::DB via Bit::Set::DB module
+- Added tests for the  OO interfaces
+- Fixed documentation formatting and typos in several places
 0.05      2025-11-13 20:16:36-07:00 America/Denver
 - Added BitDB_load functionality from creating BitDB from an
 external buffer

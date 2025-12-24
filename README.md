@@ -1,14 +1,14 @@
 # NAME
 
-Bit::Set - Perl interface for bitset functions from the 'bit' C library
+Bit::Set - Perl procedureal interface to the 'bit' C library
 
 # VERSION
 
-version 0.05
+version 0.06
 
 # SYNOPSIS
 
-    use Bit::Set;
+    use Bit::Set qw(:all);
 
     # Create a new bitset
     my $set = Bit_new(1024);
@@ -35,20 +35,19 @@ function, please refer to [Bit](https://github.com/chrisarg/Bit).
 Runtime checks on arguments are performed if the `DEBUG` environment variable
 is set to a true value when installing the code.
 
-The module was created during a "vibecoding" experiment in Github Copilot
-running through the VS Code editor. The section VIBECODING A FFI API of
-the documentation discusses the prompts used to generate the FFI bindings, and
-the manual edits of the generated code. While I went through various iterations
-of the prompt, only the final one is provided (and documented). It is estimated
-that somewhere between 20-30 hours of "vibecoding" (prompt authoring, refinement,
-verification of the output and exploration of various chatbots) went into the 
-creation of this module. Unless stated otherwise, the source code of the module 
-retains the original output as returned by the chatbot. In the case that manual
-edits were made to the generated code, the original output has been retained 
-in the comments of the module code. Some (but not all!) noteworthy edits are
-discussed in the documentation.
+Only the constructor and destructor are exported by default. You can import all functions using the `:all` tag, or import individual functions as needed.
 
-# FUNCTIONS
+## Note on the Procedural interface
+
+The **procedural** API in the module was created during a "vibecoding" experiment in Github Copilot running through the VS Code editor. The section `VIBECODING A FFI API THAT DIRECTLY MAPS THE C INTERFACE OF BIT` of the documentation discusses the prompts used to generate the FFI bindings, and the manual edits of the generated code. While I went through various iterations of the prompt, only the final one is provided (and documented). It is estimated that somewhere between 20-30 hours of "vibecoding" (prompt authoring, refinement, verification of the output and exploration of various chatbots) went into the creation of this module. Unless stated otherwise, the source code of the module retains the original output as returned by the chatbot. In the case that manual edits were made to the generated code, the original output has been retained  in the comments of the module code. Some (but not all!) noteworthy edits are discussed in the documentation. Only the functions that have a direct corresponding to the C interface were wrapped via vibecoding, while all the subsequent functions (e.g. the verification that all C functions were mapped and the object oriented API) were manually created.
+
+## Note on the Object Oriented interface
+
+I had hesitated to release an **Object Oriented** API for the Bit library largely because of performance concerns. The OO interfaces are currently layered on top of the procedural API, and thus incur some overhead compared to direct calls to the procedural API. See [Bit::Set::OO](https://metacpan.org/pod/Bit::Set::OO) for the OO interface. Only the procedural API was created via vibecoding, while the OO interface was manually created.
+
+# Functions in the procedural interface
+
+The Bit::Set module provides a procedural interface to the Bit library. The functions are grouped into several categories for clarity, as described below.
 
 ## Creation and Destruction
 
@@ -62,7 +61,7 @@ discussed in the documentation.
 
 - **Bit\_load(length, buffer)**
 
-    Loads an externally allocated bitset into a new Bit\_T structure.
+    Loads an externally allocated bitset into a new Bit\_T structure in C and returns it as a Perl scalar. 
 
 - **Bit\_extract(set, buffer)**
 
@@ -178,9 +177,7 @@ discussed in the documentation.
 
 # EXAMPLES
 
-Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
-from the test suite.
-Others are Perl "translations" of the original C benchmarks.
+Examples of the use of the `Bit::Set` module. Many of these examples are lifted from the test suite. Others are Perl "translations" of the original C benchmarks.
 
 - Example 1: Creating and using a bitset
 
@@ -203,9 +200,7 @@ Others are Perl "translations" of the original C benchmarks.
 - Example 2: Comparison operations between bitsets
 
     This example illustrates the use of the comparison functions provided by the 
-    `Bit::Set` module. The equality comparison function is shown for simplicity, but 
-    the example can serve as blue print for
-    other comparisons functions e.g. less than equal to.
+    `Bit::Set` module. The equality comparison function is shown for simplicity, but the example can serve as blue print for other comparisons functions e.g. less than equal to.
 
         use Test::More;  # Convenient testing framework
         use Bit::Set     qw(:all);
@@ -311,11 +306,10 @@ Others are Perl "translations" of the original C benchmarks.
 - Example 5: Loading and extracting a bitset
 
     A slightly more complex example, in which we create a bitset, set a few bits,
-     extract them into a buffer (allocated via `FFI::Platypus::Buffer`, though other
-     possibilities exist e.g. through Task::MemManager) and then checking that their
-     values is correct. The load example reverses the logic, i.e. we allocate the
-     buffer, set its value using pack, put the buffer into a bitset and test the
-     individual bits.
+     extract them into a buffer (allocated via [FFI::Platypus::Buffer](https://metacpan.org/pod/FFI::Platypus::Buffer), though other
+     possibilities exist e.g. through [Task::MemManager](https://metacpan.org/pod/Task::MemManager)) and then checking that their
+     values is correct. The load example logic is as follows: first, we allocate the
+     buffer, then we set its value using pack, and finaly we put the buffer into a bitset and test the  individual bits.
 
         use Test::More; # Convenient testing framework
         use Bit::Set     qw(:all);
@@ -355,19 +349,10 @@ Others are Perl "translations" of the original C benchmarks.
 - Example 6: Benchmarking of the Perl interface to the Bit library
 
     This example re-implements part of the C benchmarking suite for the Bit library
-    (found in the source file "benchmark.c" in the github repository for Bit). The
-    goal is to compare the performance of various bitset operations in Perl with their
-    C counterparts, while showing a larger application that uses the Perl interface
-    to the Bit library.
+    (found in the source file "benchmark.c" in the [github repository for Bit](https://github.com/chrisarg/Bit)). The goal is to compare the performance of various bitset operations in Perl with their C counterparts, while showing a larger application that uses the Perl interface to the Bit library.
     In this example we profile the time it takes to execute the intersection and the
-    count of the two intersection of two bitsets with variable capacity, ranging from 
-    128 to 1048576 bit. The intersection and the count of the intersection is executed
-    1000 times and the time it takes to finish this benchmark is used to infer the
-    performance characteristics (nanoseconds per iteration, iteration per second) 
-    of the Perl implementation compared to the C implementation. 
-    There is negligible overhead introduced by the Perl interface, making it a viable
-    option for performance-critical applications, without the "pain" of writing an
-    application in C.
+    count of the two intersection of two bitsets with variable capacity, ranging from 128 to 1048576 bits. The intersection and the count of the intersection is executed 1000 times and the time it takes to finish this benchmark is used to infer the performance characteristics (nanoseconds per iteration, iteration per second)  of the Perl implementation compared to the C implementation. 
+    There is negligible overhead introduced by the Perl interface, making it a viable option for performance-critical applications, without the "pain" of writing an application in C.
 
         use strict;
         use warnings;
@@ -480,7 +465,7 @@ Others are Perl "translations" of the original C benchmarks.
 
         print "\n\nBenchmark completed!\n";
 
-# VIBECODING A FFI API
+# VIBECODING A FFI API THAT DIRECTLY MAPS THE C INTERFACE OF BIT
 
 The module was created during a "vibecoding" experiment in Github Copilot
 running through the VS Code editor. During the initial exploration, which lasted
@@ -568,17 +553,17 @@ summarized below:
                 };
             }
         }
+
     When the DEBUG variable is not set, it is unclear whether the check for DEBUG
     will strip the code that adds the runtime exception wrapper at compile time.
     The pattern discussed in the Perl documentation states that a simple test
-    of the form C< if (DEBUG) { ... }> will strip everything within the block, but
-    will a test of the form C<< if ( DEBUG && exists $spec->{check} ) { ... } >> do the
-    same?
+    of the form ` if (DEBUG) { ... }` will strip everything within the block, but
+    will a test of the form `if ( DEBUG && exists $spec->{check} ) { ... }` do the same?
     Secondly, the attachment of the wrapper function to the FFI call is also a
     concern: it takes place early in the process, before the DEBUG check is made.
-    Thirdly, the snippet C<< push @attach_args, wrapper => sub { ... } >> as it pushes
-    *two* arguments into the function call for C< attach >.
-    If one looks into the documentation for L<FFI::Platypus::attach|https://metacpan.org/pod/FFI::Platypus#attach>,
+    Thirdly, the snippet `push @attach_args, wrapper => sub { ... }` as it pushes
+    \*two\* arguments into the function call for ` attach `.
+    If one looks into the documentation for [FFI::Platypus::attach](https://metacpan.org/pod/FFI::Platypus#attach), one will find the following examples of usage:
 
         $ffi->attach($name => \@argument_types => $return_type);
         $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type);
@@ -713,6 +698,12 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
 
 # SEE ALSO
 
+- [Alien::Bit](https://metacpan.org/pod/Alien::Bit)
+
+    This distribution provides the library Bit so that it can be used by other Perl 
+    distributions that are on CPAN. It will download Bit from Github and will build 
+    the (static and dynamic) versions of the library for use by other Perl modules.
+
 - [Bit](https://github.com/chrisarg/Bit)
 
     Bit is a high-performance, uncompressed bitset implementation in C, optimized 
@@ -725,15 +716,16 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
     fast population counts using the libpocnt library and GPU operations for packed 
     containers of (collections) of Bit(sets).
 
-- [Alien::Bit](https://metacpan.org/pod/Alien::Bit)
+# TO DO
 
-    This distribution provides the library Bit so that it can be used by other Perl 
-    distributions that are on CPAN. It will download Bit from Github and will build 
-    the (static and dynamic) versions of the library for use by other Perl modules.
+- **OpenMP acceleration of operations of arrays of Bit::Set**
+
+    Explore the use of Inline::C with OpenMP support to accelerate operations on arrays of Bit::Set objects. This would be particularly useful in data-intensive applications where multiple bitsets need to be processed in parallel, leveraging multi-core processors for improved performance. This could provide an
+    alternative interface to the containerized operations provided by Bit::Set::DB.
 
 # AUTHOR
 
-GitHub Copilot (Claude Sonnet 4), guided by Christos Argyropoulos.
+Christos Argyropoulos with asistance from Github Copilot (Claude Sonnet 4).
 
 # COPYRIGHT AND LICENSE
 
