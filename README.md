@@ -1,10 +1,10 @@
 # NAME
 
-Bit::Set - Perl procedureal interface to the 'bit' C library
+Bit::Set - Perl procedural interface to the 'bit' C library
 
 # VERSION
 
-version 0.09
+version 0.10
 
 # SYNOPSIS
 
@@ -704,6 +704,10 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
     distributions that are on CPAN. It will download Bit from Github and will build 
     the (static and dynamic) versions of the library for use by other Perl modules.
 
+- [benchmarking-bits](https://github.com/chrisarg/benchmarking-bits)
+
+    A collection of benchmarking scripts for various bitset libraries in C and Perl.
+
 - [Bit](https://github.com/chrisarg/Bit)
 
     Bit is a high-performance, uncompressed bitset implementation in C, optimized 
@@ -727,6 +731,14 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
 - [Bit::Set::DB::OO](https://metacpan.org/pod/Bit::Set::DB::OO)
 
     Object Oriented interface to the Bit::Set::DB module.
+
+- [Bit::Vector](https://metacpan.org/pod/Bit::Vector)
+
+    Efficient bit vector, set of integers and "big int" math library
+
+- [Lucy::Object::BitVector](https://metacpan.org/dist/Lucy/view/lib/Lucy/Object/BitVector.pod)
+
+    Bit vector implementation used in the [Lucy](https://metacpan.org/pod/Lucy) search engine library.
 
 # TO DO
 
