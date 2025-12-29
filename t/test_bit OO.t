@@ -93,9 +93,9 @@ subtest 'Extract and Load Operations (OO)' => sub {
     my $buffer_size = Bit::Set->buffer_size(SIZE_OF_TEST_BIT);
     my $scalar =
       "\0" x $buffer_size;    # LLM returned: $buffer = "\0" x $buffer_size;
-    my ( $buffer, $size ) =
-      scalar_to_buffer $scalar;    # added to facilitate buffer management
-    my $bytes = $bitset->extract( $buffer );   # added to facilitate buffer management
+#    my ( $buffer, $size ) =
+#      scalar_to_buffer $scalar;    # added to facilitate buffer management
+    my $bytes = $bitset->extract( $scalar );   # added to facilitate buffer management
 
     my $first_byte = unpack( 'C', substr( $scalar, 0, 1 ) )
       ;    # LLM returned: unpack('C', substr($buffer, 0, 1))
@@ -105,12 +105,12 @@ subtest 'Extract and Load Operations (OO)' => sub {
     # test_bit_load
     $scalar =
       "\0" x $buffer_size;    # LLM returned: $buffer = "\0" x $buffer_size;
-    ( $buffer, $size ) =
-      scalar_to_buffer $scalar;    # added to facilitate buffer management
+#    ( $buffer, $size ) =
+#      scalar_to_buffer $scalar;    # added to facilitate buffer management
 
     substr( $scalar, 0, 1 ) = pack( 'C', 0b00000101 )
       ;    # LLM returned: substr($buffer, 0, 1) = pack('C', 0b00000101);
-    $bitset = Bit::Set->load( SIZE_OF_TEST_BIT, $buffer );
+    $bitset = Bit::Set->load( SIZE_OF_TEST_BIT, $scalar );
 
     my $load_success =
       ( $bitset->get(0) == 1 && $bitset->get(2) == 1 );
