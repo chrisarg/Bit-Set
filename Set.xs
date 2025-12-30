@@ -4,16 +4,29 @@
 #include "XSUB.h"
 #include "bit.h"
 
+struct T {
+  int length;                 // capacity of the bitset in bits
+  int size_in_bytes;          // number of bytes of the 8 bit container
+  int size_in_qwords;         // number of qwords of the 64 bit container
+  bool is_Bit_T_allocated;    // true if allocated by the library
+  unsigned char *bytes;       // pointer to the first byte
+  unsigned long long *qwords; // pointer to the first qword
+};
+
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
 
 PROTOTYPES: disable
 
-SV *BSOO_new(char *class, IV length)
+void BSOO_new(char *class, IV length, IV n=1)
 
-    CODE:
-      Bit_T obj = Bit_new(length);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), class), PTR2IV(obj));
+    PPCODE:
+      EXTEND(SP, n);
+      struct T *obj = (struct T *) T_alloc(n, length, NULL);
+      for (IV idx = 0; idx < n; ++idx) {
+        SV *s = sv_newmortal();
+        sv_setiv(newSVrv(s, class), PTR2IV(obj+idx));
+        PUSHs(s);
+      }
 
 void BSOO_DESTROY(Bit_T obj)
 

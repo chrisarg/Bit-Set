@@ -178,7 +178,8 @@ typedef struct {
 
     It is a checked runtime error to pass a NULL set to any of these routines.
 */
-extern T Bit_new(int length);  // create a new bitset
+extern long T_alloc(size_t len, size_t n, char *buffer);
+extern T Bit_new(int length); // create new bitset
 extern void* Bit_free(T* set); // free the bitset
 extern T Bit_load(int length, void* buffer);
 extern int Bit_extract(T set, void* buffer);
@@ -296,7 +297,7 @@ extern T_DB BitDB_load(int length, int num_of_bitsets, void* buffer);
 extern void* BitDB_free(T_DB* set);
 
 /*
-    Functions that return the properties of a Bit_DB container. 
+    Functions that return the properties of a Bit_DB container.
 
 */
 extern int BitDB_length(T_DB set);

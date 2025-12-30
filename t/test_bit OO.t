@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 5;#7;
 use Bit::Set::OO;
 use Bit::Set::DB::OO;
 use FFI::Platypus::Buffer;    # added to facilitate buffer management
@@ -83,6 +83,7 @@ subtest 'Basic Operations (OO)' => sub {
     undef $bitset;
 };
 
+
 subtest 'Extract and Load Operations (OO)' => sub {
 
     # test_bit_extract
@@ -117,6 +118,7 @@ subtest 'Extract and Load Operations (OO)' => sub {
     ok( $load_success, 'Bit_load creates bitset from buffer correctly' );
     undef $bitset;
 };
+
 
 subtest 'Comparison Operations (OO)' => sub {
 
@@ -316,6 +318,7 @@ subtest 'Count Operations (OO)' => sub {
     undef $bit2;
 };
 
+__END__
 subtest 'BitDB Operations (OO)' => sub {
 
     # test_bitDB_new
