@@ -36,9 +36,11 @@ for creating and manipulating bitsets. The interface mirrors the procedural
  interface provided by L<Bit::Set|https://metacpan.org/pod/Bit::Set>,
  with methods corresponding to the functions in that module.
 
-As currently implemented the OO interfaces are currently layered on top of the
-procedural API, and thus incur some overhead compared to direct calls to the
+Up to version 0.10, the OO interfaces were layered on top of the
+procedural API, and thus incured some overhead compared to direct calls to the
 procedural API.
+
+After version 0.11, the OO interface is implemented directly in XS  (code contributed by Joe Schaefer), thus avoiding the overhead of the procedural layer.
 
 =head1 Methods
 
@@ -303,6 +305,33 @@ of dynamic method lookup, i.e. the methods are resolved at compile time.
 
   ok(1);
 
+B<Background on Performant Object Oriented interfaces>
+
+Joe Scahefer's L<sealed|https://metacpan.org/pod/sealed> in combination with XS provide unique opportunities to improve the peformance of OO interfaces without the overhead of traditional Perl OO systems by "sealing" the methods at compile time.  As Joe L<points out|https://www.iconoclasts.blog/joe/perl7-sealed-lexicals> wrote:
+
+    "Perl 5s OO runtime method lookup has 50% more performance overhead than a
+    direct, named subroutine invocation."
+
+Doug MacEachern proposed a very L<solution|https://www.perl.com/pub/2000/06/dougpatch.html/> which however never made it into the core.
+Joe's sealed package implements Doug's idea in a modern way, allowing the
+creation of efficient OO interfaces without the overhead of traditional Perl OO
+systems by "sealing" the methods at compile time. In order for these methods to shine, the right combination of ingredients is needed:
+
+=over 4
+=item 1 The overhead of the dynamic lookup should be significant compared to the work done in the method itself. 
+
+This is the case for small methods that do little work, such as getters and setters. However, this is also the case when the underlying C function is very fast, as is the case with the Bit library.
+
+=item 2 The XS interface should materially decrease the overhead of the method call itself.
+
+This is really a corollary of point 1 above, but it is worth stating explicitly.
+
+=item 3 The methods should be used to process large numbers of objects in tight loops.
+
+This is where the overhead of dynamic method lookup really adds up, and where the benefits of XS and sealing the methods at compile time become apparent.
+
+
+
 =back
 
 =head1 SEE ALSO
@@ -363,21 +392,9 @@ Subroutine attribute for compile-time method lookups on its typed lexicals.
 
 =over 4
 
-=item B<Implement Performant Object Oriented interfaces>
+=item * Add more examples.
 
-Explore Joe Scahefer's L<sealed|https://metacpan.org/pod/sealed>  in order to
-create efficient OO interfaces without the overhead of traditional Perl OO
-systems by "sealing" the methods at compile time. Subroutine attribute for
-compile-time method lookups on its typed lexicals.
-As Joe L<points out|https://www.iconoclasts.blog/joe/perl7-sealed-lexicals>:
-
-    "Perl 5s OO runtime method lookup has 50% more performance overhead than a
-    direct, named subroutine invocation."
-
-Doug MacEachern proposed a very L<solution|https://www.perl.com/pub/2000/06/dougpatch.html/> which however never made it into the core.
-Joe's sealed package implements Doug's idea in a modern way, allowing the
-creation of efficient OO interfaces without the overhead of traditional Perl OO
-systems by "sealing" the methods at compile time.
+=item* Add more tests.
 
 =back
 
