@@ -18,6 +18,7 @@ my $set = Bit_new(1024);
 Bit_bset($set, 0);
 Bit_bset($set, 42);
 
+
 # Get population count
 my $count = Bit_count($set);
 
@@ -28,8 +29,8 @@ Bit_free(\$set);
 # DESCRIPTION
 
 This module provides a procedural Perl interface to the C library [Bit](https://github.com/chrisarg/Bit),
-for creating and manipulating bitsets. It uses `FFI::Platypus` to wrap the
-C functions and `Alien::Bit` to locate and link to the C library.
+for creating and manipulating bitsets. It uses `Alien::Bit` to locate and link to the C library and up to version 0.10 of the package it relied on  `FFI::Platypus` to bind to the C functions. **As of version 0.11 the procedural interface is implemented using XS**, and does not
+invoke the library via FFI.
 
 The API is a direct mapping of the C functions. For detailed semantics of each
 function, please refer to [Bit](https://github.com/chrisarg/Bit).
@@ -66,7 +67,9 @@ The Bit::Set module provides a procedural interface to the Bit library. The func
 
 - **Bit\_free(set\_ref)**
 
-    Frees the memory associated with the bitset. Expects a reference to the scalar holding the bitset.
+    Frees the memory associated with the bitset. Expects a reference to the scalar holding the bitset. The C function returns the address of the storage
+    if allocated externally, or NULL if the bitset was allocated by the library.
+    These values are NOT returned to the Perl caller (so if you used an externally allocated buffer, you need to manage its memory yourself).
 
 - **Bit\_load(length, buffer)**
 
@@ -93,17 +96,17 @@ The Bit::Set module provides a procedural interface to the Bit library. The func
 
 ## Manipulation
 
-- **Bit\_aset(set, indices, n)**
+- **Bit\_aset(set, indices)**
 
-    Sets an array of bits specified by indices.
+    Sets an array of bits specified by indices (provided as a reference to an array).
 
 - **Bit\_bset(set, index)**
 
     Sets a single bit at the specified index to 1.
 
-- **Bit\_aclear(set, indices, n)**
+- **Bit\_aclear(set, indices)**
 
-    Clears an array of bits specified by indices.
+    Clears an array of bits specified by indices (provided as a reference to an array).
 
 - **Bit\_bclear(set, index)**
 
@@ -800,4 +803,4 @@ Christos Argyropoulos with asistance from Github Copilot (Claude Sonnet 4) up to
 This software up to and including v0.10 is copyright (c) 2025 Christos Argyropoulos.
 For versions after v0.10, the distribution as a whole is copyright (c) 2025 Joe Schaefer and Christos Argyropoulos.
 
-This software is distributed under the MIT license
+This software is released under the [MIT license](https://mit-license.org/).

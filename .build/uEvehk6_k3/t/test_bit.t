@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 use Test::More tests => 6;
-use Bit::Set     qw(:all);
+use Bit::Set qw(:all);     
 use Bit::Set::DB qw(:all);
+use Bit::Set::DB::OO;
 use FFI::Platypus::Buffer;    # added to facilitate buffer management
 
 # Test constants
@@ -341,35 +342,35 @@ subtest 'Count Operations' => sub {
 subtest 'BitDB Operations' => sub {
 
     # test_bitDB_new
-    my $bitdb = BitDB_new( SIZE_OF_TEST_BIT, 10 );
-    ok( defined $bitdb, 'BitDB_new creates bitset database' );
+    my $bitdb = Bit::Set::DB->new( SIZE_OF_TEST_BIT, 10 );
+    ok( defined $bitdb, 'Bit::Set::DB->new creates bitset database' );
 
     # test_bitDB_properties
     my $props_success =
-      ( BitDB_length($bitdb) == SIZE_OF_TEST_BIT && BitDB_nelem($bitdb) == 10 );
-    ok( $props_success, 'BitDB properties are correct' );
+      ( $bitdb->length == SIZE_OF_TEST_BIT && $bitdb->nelem == 10 );
+    ok( $props_success, 'Bit::Set::DB properties are correct' );
 
     # test_bitDB_get_put
     my $bitset = Bit_new(SIZE_OF_TEST_BIT);
     Bit_bset( $bitset, 1 );
     Bit_bset( $bitset, 3 );
 
-    BitDB_put_at( $bitdb, 0, $bitset );
-    my $retrieved = BitDB_get_from( $bitdb, 0 );
+    $bitdb->put_at( 0, $bitset );
+    my $retrieved = $bitdb->get_from( 0 );
 
     my $get_put_success =
       ( Bit_get( $retrieved, 1 ) == 1 && Bit_get( $retrieved, 3 ) == 1 );
-    ok( $get_put_success, 'BitDB get/put operations work correctly' );
+    ok( $get_put_success, 'Bit::Set::DB get/put operations work correctly' );
 
     Bit_free( \$bitset );
-    Bit_free( \$retrieved );
+    undef $retrieved;
 
     # test_bitDB_extract_replace
     $bitset = Bit_new(SIZE_OF_TEST_BIT);
     Bit_bset( $bitset, 1 );
     Bit_bset( $bitset, 3 );
 
-    BitDB_put_at( $bitdb, 0, $bitset );
+    $bitdb->put_at( 0, $bitset );
 
     # LLM returned: my $buffer        = "\0" x ( SIZE_OF_TEST_BIT / 8 );
     # Following 3 lines added to create a buffer using API calls
@@ -377,7 +378,7 @@ subtest 'BitDB Operations' => sub {
     my $scalar      = "\0" x $buffer_size;
     my ( $buffer, $size ) = scalar_to_buffer $scalar;
 
-    my $bytes_written = BitDB_extract_from( $bitdb, 0, $buffer );
+    my $bytes_written = $bitdb->extract_from( 0, $buffer );
 
     # LLM returned: my $first_byte      = unpack( 'C', substr( $buffer, 0, 1 )
     # );
@@ -385,18 +386,18 @@ subtest 'BitDB Operations' => sub {
     my $extract_success = ( $bytes_written == SIZE_OF_TEST_BIT / 8
           && $first_byte == ( ( 1 << 1 ) | ( 1 << 3 ) ) );
 
-    BitDB_replace_at( $bitdb, 0, $buffer );
+    $bitdb->replace_at( 0, $buffer );
 
-    $retrieved = BitDB_get_from( $bitdb, 0 );
+    $retrieved = $bitdb->get_from( 0 );
 
     my $replace_success =
       ( Bit_get( $retrieved, 1 ) == 1 && Bit_get( $retrieved, 3 ) == 1 );
 
     ok( $extract_success && $replace_success,
-        'BitDB extract/replace operations work correctly' );
+        'Bit::Set::DB extract/replace operations work correctly' );
 
     Bit_free( \$bitset );
-    Bit_free( \$retrieved );
+    undef $retrieved;
 };
 
 # Note: Skipping the BitDB intersection count test as it requires the SETOP_COUNT_OPTS
