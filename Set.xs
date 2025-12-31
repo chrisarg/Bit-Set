@@ -1,12 +1,14 @@
-#include "EXTERN.h"
-#include "perl.h"
-#include "perlapi.h"
-#include "XSUB.h"
-#include "bit.h"
+#include "macros_defs.h"
+MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
+
+PROTOTYPES: DISABLE
+
+INCLUDE: Set_procedural.xs
 
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
 
-PROTOTYPES: disable
+PROTOTYPES: DISABLE
+
 
 SV *BSOO_new(char *class, IV length)
 
@@ -55,19 +57,16 @@ SV *BSOO_count(Bit_T obj)
       ST(0) = sv_newmortal();
       sv_setiv(ST(0), rv);
 
-void BSOO_aset(Bit_T obj, SV *indices, IV n)
+void BSOO_aset(Bit_T obj, INTEGER_ARRAY_REF indices)
 
     CODE:
-      int idx[n];
       AV *av = (AV *)SvRV(indices);
-      STRLEN len = av_len(av);
-      if (len < n) n = len;
-      for (int i = 0; i < n; ++i) {
-        SV **svp = av_fetch(av, i, 0);
-        idx[i] = SvIV(*svp);
-      }
+      int n = av_len(av) + 1;
+  ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
+      FILL_INT_ARRAY_FROM_AV(av, idx, n);
 
       Bit_aset(obj, idx, n);
+      FREE_ARRAY_IN_STACK_OR_HEAP(idx);
 
 
 void BSOO_bset(Bit_T obj, IV index)
@@ -75,18 +74,17 @@ void BSOO_bset(Bit_T obj, IV index)
     CODE:
       Bit_bset(obj, index);
 
-void BSOO_aclear(Bit_T obj, SV *indices, IV n)
+void BSOO_aclear(Bit_T obj, INTEGER_ARRAY_REF indices)
 
     CODE:
-      int idx[n];
       AV *av = (AV *)SvRV(indices);
-      STRLEN len = av_len(av);
-      if (len < n) n = len;
-      for (int i = 0; i < n; ++i) {
-        SV **svp = av_fetch(av, i, 0);
-        idx[i] = SvIV(*svp);
-      }
+      int n = av_len(av) + 1;
+  ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
+      FILL_INT_ARRAY_FROM_AV(av, idx, n);
+
       Bit_aclear(obj, idx, n);
+
+      FREE_ARRAY_IN_STACK_OR_HEAP(idx);
 
 void BSOO_bclear(Bit_T obj, IV index)
 

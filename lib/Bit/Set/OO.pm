@@ -1,11 +1,8 @@
 #!/home/chrisarg/perl5/perlbrew/perls/current/bin/perl
 package Bit::Set::OO;
-use version;
+
 use XSLoader ();
-BEGIN {
-  our $VERSION = qv(0.0.1);
-  XSLoader::load("Bit::Set", $VERSION);
-}
+XSLoader::load("Bit::Set");
 
 1;
 
@@ -93,17 +90,17 @@ Returns the population count (number of set bits) of the bitset.
 
 =over 4
 
-=item B<$bitset-E<gt>aset(indices, n)>
+=item B<$bitset-E<gt>aset(indices)>
 
-Sets an array of bits specified by indices.
+Sets an array of bits specified by indices (which must be a reference to an array).
 
 =item B<$bitset-E<gt>bset(index)>
 
 Sets a single bit at the specified index to 1.
 
-=item B<$bitset-E<gt>aclear(indices, n)>
+=item B<$bitset-E<gt>aclear(indices)>
 
-Clears an array of bits specified by indices.
+Clears an array of bits specified by indices (which must be a reference to an array).
 
 =item B<$bitset-E<gt>bclear(index)>
 
@@ -253,6 +250,59 @@ less than equal to.
   undef $set1;
   undef $set2;
 
+=item Example 3: The seal of the speed
+
+This example which was created by Joe Schaefer as a small benchmark test
+illustrates the performance benefits of sealing the object to avoid the overhead
+of dynamic method lookup, i.e. the methods are resolved at compile time. 
+
+  use Test::More tests => 1;
+  use POSIX 'dup2';
+  dup2 fileno(STDERR), fileno(STDOUT);
+  use strict;
+  use warnings;
+  use Benchmark ':all';
+  use base 'sealed';
+  use sealed 'deparse';
+
+  use Bit::Set ':all';
+  use Bit::Set::OO;
+
+
+  use constant SIZE_OF_TEST_BIT => 65536;
+  use constant SIZEOF_BITDB     => 45;
+
+
+  cmpthese 20_000_000, {
+    bsoo => sub {
+      my $b = Bit::Set->new(SIZE_OF_TEST_BIT);
+      $b->bset(2);
+      $b->put(3, 1);
+      die unless $b->get(2) == 1;
+      die unless $b->get(3) == 1;
+      undef $b;
+    },
+    sealed => sub :Sealed {
+      my Bit::Set $b;
+      $b = $b->new(SIZE_OF_TEST_BIT);
+      $b->bset(2);
+      $b->put(3, 1);
+      die unless $b->get(2) == 1;
+      die unless $b->get(3) == 1;
+      undef $b;
+    },
+    bs => sub {
+      my $b = Bit_new(SIZE_OF_TEST_BIT);
+      Bit_bset($b,2);
+      Bit_put($b,3,1);
+      die unless Bit_get($b, 2) == 1;
+      die unless Bit_get($b, 3) == 1;
+      Bit_free(\$b);
+    }
+  };
+
+  ok(1);
+
 =back
 
 =head1 SEE ALSO
@@ -303,6 +353,10 @@ Efficient bit vector, set of integers and "big int" math library
 
 Bit vector implementation used in the L<Lucy|https://metacpan.org/pod/Lucy> search engine library.
 
+=item L<sealed|https://metacpan.org/pod/sealed>
+
+Subroutine attribute for compile-time method lookups on its typed lexicals.
+
 =back
 
 =head1 TO DO
@@ -329,13 +383,15 @@ systems by "sealing" the methods at compile time.
 
 =head1 AUTHOR
 
-Christos Argyropoulos.
+Christos Argyropoulos and Joe Schaefer after v0.11.
+Christos Argyropoulos with asistance from Github Copilot (Claude Sonnet 4) up to v0.10.
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2025 by Christos Argyropoulos.
+This software up to and including v0.10 is copyright (c) 2025 Christos Argyropoulos.
+For versions after v0.10, the distribution as a whole is copyright (c) 2025 Joe Schaefer and Christos Argyropoulos.
 
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+This software is released under the L<MIT license|https://mit-license.org/>.
+
 
 =cut

@@ -4,24 +4,26 @@ Bit::Set - Perl procedural interface to the 'bit' C library
 
 # VERSION
 
-version 0.10
+version 0.11
 
 # SYNOPSIS
 
-    use Bit::Set qw(:all);
+```perl
+use Bit::Set qw(:all);
 
-    # Create a new bitset
-    my $set = Bit_new(1024);
+# Create a new bitset
+my $set = Bit_new(1024);
 
-    # Set some bits
-    Bit_bset($set, 0);
-    Bit_bset($set, 42);
+# Set some bits
+Bit_bset($set, 0);
+Bit_bset($set, 42);
 
-    # Get population count
-    my $count = Bit_count($set);
+# Get population count
+my $count = Bit_count($set);
 
-    # Free the bitset
-    Bit_free(\$set);
+# Free the bitset
+Bit_free(\$set);
+```
 
 # DESCRIPTION
 
@@ -39,11 +41,18 @@ Only the constructor and destructor are exported by default. You can import all 
 
 ## Note on the Procedural interface
 
-The **procedural** API in the module was created during a "vibecoding" experiment in Github Copilot running through the VS Code editor. The section `VIBECODING A FFI API THAT DIRECTLY MAPS THE C INTERFACE OF BIT` of the documentation discusses the prompts used to generate the FFI bindings, and the manual edits of the generated code. While I went through various iterations of the prompt, only the final one is provided (and documented). It is estimated that somewhere between 20-30 hours of "vibecoding" (prompt authoring, refinement, verification of the output and exploration of various chatbots) went into the creation of this module. Unless stated otherwise, the source code of the module retains the original output as returned by the chatbot. In the case that manual edits were made to the generated code, the original output has been retained  in the comments of the module code. Some (but not all!) noteworthy edits are discussed in the documentation. Only the functions that have a direct corresponding to the C interface were wrapped via vibecoding, while all the subsequent functions (e.g. the verification that all C functions were mapped and the object oriented API) were manually created.
+The initial **procedural** API in the module was created during a "vibecoding" experiment in Github Copilot running through the VS Code editor. The section `VIBECODING A FFI API THAT DIRECTLY MAPS THE C INTERFACE OF BIT` of the documentation discusses the prompts used to generate the FFI bindings, and the manual edits of the generated code. While I went through various iterations of the prompt, only the final one is provided (and documented). It is estimated that somewhere between 20-30 hours of "vibecoding" (prompt authoring, refinement, verification of the output and exploration of various chatbots) went into the creation of this module. Unless stated otherwise, the source code of the module retains the original output as returned by the chatbot. In the case that manual edits were made to the generated code, the original output has been retained  in the comments of the module code. Some (but not all!) noteworthy edits are discussed in the documentation. Only the functions that have a direct corresponding to the C interface were wrapped via vibecoding, while all the subsequent functions (e.g. the verification that all C functions were mapped and the object oriented API) were manually created.
+
+During benchmarking at version 0.10 of the package,  it became obvious that the code was slower than what it should have been,  and Joe Schaefer (PAUSEID [JOESUF](https://metacpan.org/author/JOESUF)) kindly contributed a direct XS interface to improve performance relative to the FFI version. I used Joe's XS code as a blueprint to generate the XS bindings for the procedural interface; the benchmarking github repository
+[benchmarking-bits](https://github.com/chrisarg/benchmarking-bits) executes a full benchmark of the performance enhancement of the XS version relative to the FFI version. 
 
 ## Note on the Object Oriented interface
 
-I had hesitated to release an **Object Oriented** API for the Bit library largely because of performance concerns. The OO interfaces are currently layered on top of the procedural API, and thus incur some overhead compared to direct calls to the procedural API. See [Bit::Set::OO](https://metacpan.org/pod/Bit::Set::OO) for the OO interface. Only the procedural API was created via vibecoding, while the OO interface was manually created.
+I had hesitated to release an **Object Oriented** API for the Bit library largely because of performance concerns. The OO interface released with v0.10 was layered on top of the procedural API, and thus incur considerab;e overhead compared to direct calls to the procedural API. See [Bit::Set::OO](https://metacpan.org/pod/Bit::Set::OO) for the OO interface. The initial OO interface was created manually without AI coding assistance. 
+
+**As of v0.11, both the OO and the procedural interfaces bind to the underlying C code using manually generated XS (contributed by JOESUF), and not through the "vibecoded" FFI binding.** We chose to retain the "vibecoding" sections in the documentation in the name of preserving this activity and invite the interested reader to download v0.10 of the source code of the package to examine the FFI-based implementation.
+
+The OO interface's performance can be increased by 5%-15% by using JOESUF's technique of sealing the object to avoid the overhead of dynamic method lookup, i.e. the methods are resolved at compile time. A small benchmarking test is now included with the examples of the OO interface. See [Bit::Set::OO](https://metacpan.org/pod/Bit::Set::OO) for details.
 
 # Functions in the procedural interface
 
@@ -184,42 +193,46 @@ Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
     Simple example in which we create, set and test for setting of individual 
     bits into a bitset.
 
-        use Bit::Set qw(:all);
+    ```perl
+    use Bit::Set qw(:all);
 
-        my $bitset = Bit_new(64);
-        Bit_set($bitset, 1);
-        Bit_set($bitset, 3);
-        Bit_set($bitset, 5);
+    my $bitset = Bit_new(64);
+    Bit_set($bitset, 1);
+    Bit_set($bitset, 3);
+    Bit_set($bitset, 5);
 
-        print "Bit 1 is ", Bit_get($bitset, 1) ? "set" : "not set", "\n";
-        print "Bit 2 is ", Bit_get($bitset, 2) ? "set" : "not set", "\n";
-        print "Bit 3 is ", Bit_get($bitset, 3) ? "set" : "not set", "\n";
+    print "Bit 1 is ", Bit_get($bitset, 1) ? "set" : "not set", "\n";
+    print "Bit 2 is ", Bit_get($bitset, 2) ? "set" : "not set", "\n";
+    print "Bit 3 is ", Bit_get($bitset, 3) ? "set" : "not set", "\n";
 
-        Bit_free(\$bitset);
+    Bit_free(\$bitset);
+    ```
 
 - Example 2: Comparison operations between bitsets
 
     This example illustrates the use of the comparison functions provided by the 
     `Bit::Set` module. The equality comparison function is shown for simplicity, but the example can serve as blue print for other comparisons functions e.g. less than equal to.
 
-        use Test::More;  # Convenient testing framework
-        use Bit::Set     qw(:all);
-        use FFI::Platypus::Buffer;    
+    ```perl
+    use Test::More;  # Convenient testing framework
+    use Bit::Set     qw(:all);
+    use FFI::Platypus::Buffer;    
 
-        use constant SIZE_OF_TEST_BIT => 65536;
-        my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
-        my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
+    use constant SIZE_OF_TEST_BIT => 65536;
+    my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
+    my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
 
-        Bit_bset( $bit1, 1 );
-        Bit_bset( $bit1, 3 );
+    Bit_bset( $bit1, 1 );
+    Bit_bset( $bit1, 3 );
 
-        Bit_bset( $bit2, 1 );
-        Bit_bset( $bit2, 3 );
+    Bit_bset( $bit2, 1 );
+    Bit_bset( $bit2, 3 );
 
-        ok( Bit_eq( $bit1, $bit2 ), 'Bit_eq returns true for equal bitsets' );
+    ok( Bit_eq( $bit1, $bit2 ), 'Bit_eq returns true for equal bitsets' );
 
-        Bit_bset( $bit2, 8 );
-        ok( !Bit_eq( $bit1, $bit2 ), 'Bit_eq returns false for unequal bitsets' );
+    Bit_bset( $bit2, 8 );
+    ok( !Bit_eq( $bit1, $bit2 ), 'Bit_eq returns false for unequal bitsets' );
+    ```
 
 - Example 3: Set operations on bitsets
 
@@ -228,34 +241,36 @@ Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
     into a new bitset. Then we will make sure that the union bitset contains 
     all the bits from both original bitsets.
 
-        use Test::More;  # Convenient testing framework
-        use Bit::Set     qw(:all);
+    ```perl
+    use Test::More;  # Convenient testing framework
+    use Bit::Set     qw(:all);
 
-        use constant SIZE_OF_TEST_BIT => 65536;
-        my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
-        my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
+    use constant SIZE_OF_TEST_BIT => 65536;
+    my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
+    my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
 
-        Bit_bset( $bit1, 1 );
-        Bit_bset( $bit1, 3 );
+    Bit_bset( $bit1, 1 );
+    Bit_bset( $bit1, 3 );
 
-        Bit_bset( $bit2, 3 );
-        Bit_bset( $bit2, 5 );
+    Bit_bset( $bit2, 3 );
+    Bit_bset( $bit2, 5 );
 
-        my $union_bit = Bit_union( $bit1, $bit2 );
+    my $union_bit = Bit_union( $bit1, $bit2 );
 
-        my $union_success =
-          (      Bit_get( $union_bit, 1 ) == 1
-              && Bit_get( $union_bit, 3 ) == 1
-              && Bit_get( $union_bit, 5 ) == 1
-              && Bit_get( $union_bit, 0 ) == 0
-              && Bit_get( $union_bit, 2 ) == 0
-              && Bit_get( $union_bit, 4 ) == 0 );
+    my $union_success =
+      (      Bit_get( $union_bit, 1 ) == 1
+          && Bit_get( $union_bit, 3 ) == 1
+          && Bit_get( $union_bit, 5 ) == 1
+          && Bit_get( $union_bit, 0 ) == 0
+          && Bit_get( $union_bit, 2 ) == 0
+          && Bit_get( $union_bit, 4 ) == 0 );
 
-        ok( $union_success, 'Bit_union works correctly' );
+    ok( $union_success, 'Bit_union works correctly' );
 
-        Bit_free( \$bit1 );
-        Bit_free( \$bit2 );
-        Bit_free( \$union_bit );
+    Bit_free( \$bit1 );
+    Bit_free( \$bit2 );
+    Bit_free( \$union_bit );
+    ```
 
 - Example 4: Count of operations between two sets
 
@@ -265,43 +280,45 @@ Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
     These operations take advantage of hardware accelerated population counts,
     or advanced, SIMD accelerated algorithms for efficient population counting.
 
-        use Test::More;  # Convenient testing framework
-        use Bit::Set     qw(:all);
+    ```perl
+    use Test::More;  # Convenient testing framework
+    use Bit::Set     qw(:all);
 
-        use constant SIZE_OF_TEST_BIT => 65536;
-            my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
-        my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
+    use constant SIZE_OF_TEST_BIT => 65536;
+        my $bit1 = Bit_new(SIZE_OF_TEST_BIT);
+    my $bit2 = Bit_new(SIZE_OF_TEST_BIT);
 
-        Bit_bset( $bit1, 1 );
-        Bit_bset( $bit1, 3 );
-        Bit_bset( $bit1, 5 );
+    Bit_bset( $bit1, 1 );
+    Bit_bset( $bit1, 3 );
+    Bit_bset( $bit1, 5 );
 
-        Bit_bset( $bit2, 3 );
-        Bit_bset( $bit2, 5 );
-        Bit_bset( $bit2, 7 );
+    Bit_bset( $bit2, 3 );
+    Bit_bset( $bit2, 5 );
+    Bit_bset( $bit2, 7 );
 
-        # Set extra bits to test final bits
-        my $num_of_final_bits = SIZE_OF_TEST_BIT - 8;
-        for my $i ( 8 .. SIZE_OF_TEST_BIT - 1 ) {
-            Bit_bset( $bit1, $i );
-            Bit_bset( $bit2, $i );
-        }
+    # Set extra bits to test final bits
+    my $num_of_final_bits = SIZE_OF_TEST_BIT - 8;
+    for my $i ( 8 .. SIZE_OF_TEST_BIT - 1 ) {
+        Bit_bset( $bit1, $i );
+        Bit_bset( $bit2, $i );
+    }
 
-        my $union_count = Bit_union_count( $bit1, $bit2 );
-        my $inter_count = Bit_inter_count( $bit1, $bit2 );
-        my $minus_count = Bit_minus_count( $bit1, $bit2 );
-        my $diff_count  = Bit_diff_count( $bit1, $bit2 );
+    my $union_count = Bit_union_count( $bit1, $bit2 );
+    my $inter_count = Bit_inter_count( $bit1, $bit2 );
+    my $minus_count = Bit_minus_count( $bit1, $bit2 );
+    my $diff_count  = Bit_diff_count( $bit1, $bit2 );
 
-        my $count_success =
-          (      $union_count == 4 + $num_of_final_bits
-              && $inter_count == 2 + $num_of_final_bits
-              && $minus_count == 1
-              && $diff_count == 2 );
+    my $count_success =
+      (      $union_count == 4 + $num_of_final_bits
+          && $inter_count == 2 + $num_of_final_bits
+          && $minus_count == 1
+          && $diff_count == 2 );
 
-        ok( $count_success, 'All count operations work correctly' );
+    ok( $count_success, 'All count operations work correctly' );
 
-        Bit_free( \$bit1 );
-        Bit_free( \$bit2 );
+    Bit_free( \$bit1 );
+    Bit_free( \$bit2 );
+    ```
 
 - Example 5: Loading and extracting a bitset
 
@@ -311,40 +328,42 @@ Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
      values is correct. The load example logic is as follows: first, we allocate the
      buffer, then we set its value using pack, and finaly we put the buffer into a bitset and test the  individual bits.
 
-        use Test::More; # Convenient testing framework
-        use Bit::Set     qw(:all);
-        use FFI::Platypus::Buffer;    
+    ```perl
+    use Test::More; # Convenient testing framework
+    use Bit::Set     qw(:all);
+    use FFI::Platypus::Buffer;    
 
-        use constant SIZE_OF_TEST_BIT => 65536;
-        my $bitset = Bit_new(SIZE_OF_TEST_BIT);
-        Bit_bset( $bitset, 2 );
-        Bit_bset( $bitset, 0 );
+    use constant SIZE_OF_TEST_BIT => 65536;
+    my $bitset = Bit_new(SIZE_OF_TEST_BIT);
+    Bit_bset( $bitset, 2 );
+    Bit_bset( $bitset, 0 );
 
-        my $buffer_size = Bit_buffer_size(SIZE_OF_TEST_BIT);
-        my $scalar =
-          "\0" x $buffer_size;    
-        my ( $buffer, $size ) =
-          scalar_to_buffer $scalar;    
-        my $bytes =
-          Bit_extract( $bitset, $buffer );   
+    my $buffer_size = Bit_buffer_size(SIZE_OF_TEST_BIT);
+    my $scalar =
+      "\0" x $buffer_size;    
+    my ( $buffer, $size ) =
+      scalar_to_buffer $scalar;    
+    my $bytes =
+      Bit_extract( $bitset, $buffer );   
 
-        my $first_byte = unpack( 'C', substr( $scalar, 0, 1 ) );
-        is( $first_byte, 0b00000101, 'Bit_extract produces correct buffer' );
-        Bit_free( \$bitset );
+    my $first_byte = unpack( 'C', substr( $scalar, 0, 1 ) );
+    is( $first_byte, 0b00000101, 'Bit_extract produces correct buffer' );
+    Bit_free( \$bitset );
 
-        # test_bit_load
-        $scalar =
-          "\0" x $buffer_size;    
-        ( $buffer, $size ) =
-          scalar_to_buffer $scalar;    
+    # test_bit_load
+    $scalar =
+      "\0" x $buffer_size;    
+    ( $buffer, $size ) =
+      scalar_to_buffer $scalar;    
 
-        substr( $scalar, 0, 1 ) = pack( 'C', 0b00000101 );
-        $bitset = Bit_load( SIZE_OF_TEST_BIT, $buffer );
+    substr( $scalar, 0, 1 ) = pack( 'C', 0b00000101 );
+    $bitset = Bit_load( SIZE_OF_TEST_BIT, $buffer );
 
-        my $load_success =
-          ( Bit_get( $bitset, 0 ) == 1 && Bit_get( $bitset, 2 ) == 1 );
-        ok( $load_success, 'Bit_load creates bitset from buffer correctly' );
-        Bit_free( \$bitset );
+    my $load_success =
+      ( Bit_get( $bitset, 0 ) == 1 && Bit_get( $bitset, 2 ) == 1 );
+    ok( $load_success, 'Bit_load creates bitset from buffer correctly' );
+    Bit_free( \$bitset );
+    ```
 
 - Example 6: Benchmarking of the Perl interface to the Bit library
 
@@ -354,116 +373,118 @@ Examples of the use of the `Bit::Set` module. Many of these examples are lifted 
     count of the two intersection of two bitsets with variable capacity, ranging from 128 to 1048576 bits. The intersection and the count of the intersection is executed 1000 times and the time it takes to finish this benchmark is used to infer the performance characteristics (nanoseconds per iteration, iteration per second)  of the Perl implementation compared to the C implementation. 
     There is negligible overhead introduced by the Perl interface, making it a viable option for performance-critical applications, without the "pain" of writing an application in C.
 
-        use strict;
-        use warnings;
-        use Time::HiRes  qw(gettimeofday tv_interval);
-        use Bit::Set     qw(:all);
+    ```perl
+    use strict;
+    use warnings;
+    use Time::HiRes  qw(gettimeofday tv_interval);
+    use Bit::Set     qw(:all);
 
-        # Constants
-        use constant BPQW => 64;    # bits per qword (8 bytes * 8 bits)
-        use constant BPB  => 8;     # bits per byte
+    # Constants
+    use constant BPQW => 64;    # bits per qword (8 bytes * 8 bits)
+    use constant BPB  => 8;     # bits per byte
 
 
-        # Test sizes and iterations
-        my @size_array = (
-            128,   256,   512,    1024,   2048,   4096, 8192, 16384,
-            32768, 65536, 131072, 262144, 524288, 1048576
-        );
-        my $iterations = 1000;
+    # Test sizes and iterations
+    my @size_array = (
+        128,   256,   512,    1024,   2048,   4096, 8192, 16384,
+        32768, 65536, 131072, 262144, 524288, 1048576
+    );
+    my $iterations = 1000;
 
-        # Benchmark function registry
-        my %benchmark_funcs = (
-            'Count' => {
-                code  => \&benchmark_bit_count,
-                descr => 'Count the number of bits set in the bitset'
-            },
-            'Inter Count' => {
-                code  => \&benchmark_bit_inter_count,
-                descr => 'Count the number of bits set in an intersection'
-            },
-        );
+    # Benchmark function registry
+    my %benchmark_funcs = (
+        'Count' => {
+            code  => \&benchmark_bit_count,
+            descr => 'Count the number of bits set in the bitset'
+        },
+        'Inter Count' => {
+            code  => \&benchmark_bit_inter_count,
+            descr => 'Count the number of bits set in an intersection'
+        },
+    );
 
-        print "Benchmarking the Perl Bit::Set library\n";
-        print "=" x 50, "\n";
-        for my $test ( sort keys %benchmark_funcs ) {
-            printf "%-15s => %s\n", $test, $benchmark_funcs{$test}{descr};
+    print "Benchmarking the Perl Bit::Set library\n";
+    print "=" x 50, "\n";
+    for my $test ( sort keys %benchmark_funcs ) {
+        printf "%-15s => %s\n", $test, $benchmark_funcs{$test}{descr};
+    }
+    print "\n";
+
+
+
+    # Benchmark functions for each test type
+    sub benchmark_bit_count {
+        my ($size) = @_;
+
+        # Pre-create bitsets outside the benchmark
+        my $bit1 = Bit_new($size);
+        Bit_set( $bit1, int( $size / 2 ), $size - 1 );
+        Bit_bset( $bit1, 0 );
+
+        my $t0         = [gettimeofday];
+        my $result     = Bit_count($bit1) for 1 .. $iterations;
+        my $t1         = [gettimeofday];
+        my $total_time = tv_interval $t0, $t1;
+
+        Bit_free( \$bit1 );
+
+        return $total_time;
+    }
+
+    sub benchmark_bit_inter_count {
+        my ($size) = @_;
+
+        # Pre-create bitsets outside the benchmark
+        my $bit1 = Bit_new($size);
+        my $bit2 = Bit_new($size);
+        Bit_set( $bit1, int( $size / 2 ), $size - 1 );
+        Bit_bset( $bit1, 0 );
+
+        my $t0         = [gettimeofday];
+        my $result     = Bit_inter_count( $bit1, $bit2 ) for 1 .. $iterations;
+        my $t1         = [gettimeofday];
+        my $total_time = tv_interval $t0, $t1;
+
+        Bit_free( \$bit1 );
+        Bit_free( \$bit2 );
+
+        return $total_time;
+
+    }
+
+    sub run_benchmark {
+        my ( $test_name, $size, $benchmark_func ) = @_;
+
+        my $total_time = $benchmark_func->($size);
+
+        my $total_time_ns = $total_time * 1_000_000_000;    # Convert to nanoseconds
+
+        # Calculate derived metrics
+        my $time_per_iteration    = $total_time_ns / $iterations;
+        my $iterations_per_second = $iterations / $total_time;
+
+        # Format and print results
+        printf
+        "%-30s (size = %8d): %12.0f ns total\t%8.2f ns/iter\t%10.2e iter/s\n",
+        "Bit $test_name", $size, $total_time_ns, $time_per_iteration,
+        $iterations_per_second;
+    }
+
+    # Main benchmark execution
+    print "Running individual benchmarks...\n";
+    print "=" x 80, "\n";
+
+    for my $test_name ( sort keys %benchmark_funcs ) {
+        print "\nBenchmarking $test_name: $benchmark_funcs{$test_name}{descr}\n";
+        print "-" x 80, "\n";
+        for my $size (@size_array) {
+            run_benchmark( $test_name, $size, $benchmark_funcs{$test_name}{code} );
         }
-        print "\n";
 
+    }
 
-
-        # Benchmark functions for each test type
-        sub benchmark_bit_count {
-            my ($size) = @_;
-
-            # Pre-create bitsets outside the benchmark
-            my $bit1 = Bit_new($size);
-            Bit_set( $bit1, int( $size / 2 ), $size - 1 );
-            Bit_bset( $bit1, 0 );
-
-            my $t0         = [gettimeofday];
-            my $result     = Bit_count($bit1) for 1 .. $iterations;
-            my $t1         = [gettimeofday];
-            my $total_time = tv_interval $t0, $t1;
-
-            Bit_free( \$bit1 );
-
-            return $total_time;
-        }
-
-        sub benchmark_bit_inter_count {
-            my ($size) = @_;
-
-            # Pre-create bitsets outside the benchmark
-            my $bit1 = Bit_new($size);
-            my $bit2 = Bit_new($size);
-            Bit_set( $bit1, int( $size / 2 ), $size - 1 );
-            Bit_bset( $bit1, 0 );
-
-            my $t0         = [gettimeofday];
-            my $result     = Bit_inter_count( $bit1, $bit2 ) for 1 .. $iterations;
-            my $t1         = [gettimeofday];
-            my $total_time = tv_interval $t0, $t1;
-
-            Bit_free( \$bit1 );
-            Bit_free( \$bit2 );
-
-            return $total_time;
-
-        }
-
-        sub run_benchmark {
-            my ( $test_name, $size, $benchmark_func ) = @_;
-
-            my $total_time = $benchmark_func->($size);
-
-            my $total_time_ns = $total_time * 1_000_000_000;    # Convert to nanoseconds
-
-            # Calculate derived metrics
-            my $time_per_iteration    = $total_time_ns / $iterations;
-            my $iterations_per_second = $iterations / $total_time;
-
-            # Format and print results
-            printf
-            "%-30s (size = %8d): %12.0f ns total\t%8.2f ns/iter\t%10.2e iter/s\n",
-            "Bit $test_name", $size, $total_time_ns, $time_per_iteration,
-            $iterations_per_second;
-        }
-
-        # Main benchmark execution
-        print "Running individual benchmarks...\n";
-        print "=" x 80, "\n";
-
-        for my $test_name ( sort keys %benchmark_funcs ) {
-            print "\nBenchmarking $test_name: $benchmark_funcs{$test_name}{descr}\n";
-            print "-" x 80, "\n";
-            for my $size (@size_array) {
-                run_benchmark( $test_name, $size, $benchmark_funcs{$test_name}{code} );
-            }
-
-        }
-
-        print "\n\nBenchmark completed!\n";
+    print "\n\nBenchmark completed!\n";
+    ```
 
 # VIBECODING A FFI API THAT DIRECTLY MAPS THE C INTERFACE OF BIT
 
@@ -488,42 +509,44 @@ using VS Code. Subsequently, I provided as context the "bit.h" header file from
 the [Bit library](https://github.com/chrisarg/Bit) and the associated README
 markdown file. The prompt used was the following:
 
-    Forget everything I have said and your responses so far. Look at the description 
-    of the project in README.md and the Abstract Data Type interface in bit.h. 
-    Put your self in the place of a senior Perl engineer with extensive understanding
-    of the C language. Your goal is to create a procedural Perl API to all the 
-    functions in C using the Foreign Function Interface. Assume that we have already 
-    implemented an Alien module (Alien::Bit) to install the foreign (C) dependency 
-    bit, so make sure you use it! Look at the checked runtime exceptions in the 
-    documentation of the C interface. Your goal is to incorporate them in the Perl 
-    interface too, as long as the user has set the DEBUG environmental variable. 
-    If the DEBUG variable has not been set, these runtime checks should be stripped 
-    during the compile phase of the PERL program. To do so, please ensure that the 
-    relevant check involves ONLY DEBUG, otherwise the code may not be stripped.
-    Things to adhere to during the implementation:
+```perl
+Forget everything I have said and your responses so far. Look at the description 
+of the project in README.md and the Abstract Data Type interface in bit.h. 
+Put your self in the place of a senior Perl engineer with extensive understanding
+of the C language. Your goal is to create a procedural Perl API to all the 
+functions in C using the Foreign Function Interface. Assume that we have already 
+implemented an Alien module (Alien::Bit) to install the foreign (C) dependency 
+bit, so make sure you use it! Look at the checked runtime exceptions in the 
+documentation of the C interface. Your goal is to incorporate them in the Perl 
+interface too, as long as the user has set the DEBUG environmental variable. 
+If the DEBUG variable has not been set, these runtime checks should be stripped 
+during the compile phase of the PERL program. To do so, please ensure that the 
+relevant check involves ONLY DEBUG, otherwise the code may not be stripped.
+Things to adhere to during the implementation:
 
-    The functions for the Bit_T, should end up in the module C<Bit::Set>, and those for 
-    Bit_DB to C<Bit::Set::DB> .
-    1. Ensure that you implement the Perl interface to all the functions in the C 
-    interface, i.e. don't implement some functions and then tell me the others are 
-    implemented similarly! Reflect that you have implemented all the functions by 
-    comparing the functions that are exported by the Perl module against the 
-    functions declared in the bit.h interface (excluding of course the functions 
-    defined as macros).
-    2. The names of the methods in the Perl interface should match those of the C 
-    interface exactly, without exceptions. However, you should not implement the 
-    map function(s).
-    3. When implementing the wrapper, combine a table driven approach with the 
-    FFI's attach to maximize conciseness and reduct repetition of the code. 
-    For example, you may want to use a hash with keys the function names that 
-    the module will export. CAUTION: As a senior engineer you are probably aware 
-    of the DRY principle (Don't Repeat Yourself). When you generate code please 
-    balance DRY with the performance penalty of function evaluations (e.g. for checks).
-    4. When implementing a function, do provide the POD documentation for it. 
-    However, generate the POD after you have implemented the functions.
-    5. After you have implemented the modules, generate a simple test that will 
-    generate a C<Bit::Set> of capacity of 1024 bits, set the first, second and 5th one 
-    and see if the popcount is equal to 3.
+The functions for the Bit_T, should end up in the module C<Bit::Set>, and those for 
+Bit_DB to C<Bit::Set::DB> .
+1. Ensure that you implement the Perl interface to all the functions in the C 
+interface, i.e. don't implement some functions and then tell me the others are 
+implemented similarly! Reflect that you have implemented all the functions by 
+comparing the functions that are exported by the Perl module against the 
+functions declared in the bit.h interface (excluding of course the functions 
+defined as macros).
+2. The names of the methods in the Perl interface should match those of the C 
+interface exactly, without exceptions. However, you should not implement the 
+map function(s).
+3. When implementing the wrapper, combine a table driven approach with the 
+FFI's attach to maximize conciseness and reduct repetition of the code. 
+For example, you may want to use a hash with keys the function names that 
+the module will export. CAUTION: As a senior engineer you are probably aware 
+of the DRY principle (Don't Repeat Yourself). When you generate code please 
+balance DRY with the performance penalty of function evaluations (e.g. for checks).
+4. When implementing a function, do provide the POD documentation for it. 
+However, generate the POD after you have implemented the functions.
+5. After you have implemented the modules, generate a simple test that will 
+generate a C<Bit::Set> of capacity of 1024 bits, set the first, second and 5th one 
+and see if the popcount is equal to 3.
+```
 
 Claude did get \*most\* things right:
 
@@ -540,19 +563,21 @@ summarized below:
 
     The relevant section is shown below and exhibits numerous problems. 
 
-        for my $name ( sort keys %functions ) {
-            my $spec        = $functions{$name};
-            my @attach_args = ( $name, $spec->{args}, $spec->{ret} );
-            $ffi->attach(@attach_args);
-            if ( DEBUG && exists $spec->{check} ) {
-                my $checker = $spec->{check};
-                push @attach_args, wrapper => sub {    
-                    my $orig = shift;
-                    $checker->(@_);
-                    return $orig->(@_);
-                };
-            }
+    ```perl
+    for my $name ( sort keys %functions ) {
+        my $spec        = $functions{$name};
+        my @attach_args = ( $name, $spec->{args}, $spec->{ret} );
+        $ffi->attach(@attach_args);
+        if ( DEBUG && exists $spec->{check} ) {
+            my $checker = $spec->{check};
+            push @attach_args, wrapper => sub {    
+                my $orig = shift;
+                $checker->(@_);
+                return $orig->(@_);
+            };
         }
+    }
+    ```
 
     When the DEBUG variable is not set, it is unclear whether the check for DEBUG
     will strip the code that adds the runtime exception wrapper at compile time.
@@ -565,12 +590,14 @@ summarized below:
     \*two\* arguments into the function call for ` attach `.
     If one looks into the documentation for [FFI::Platypus::attach](https://metacpan.org/pod/FFI::Platypus#attach), one will find the following examples of usage:
 
-        $ffi->attach($name => \@argument_types => $return_type);
-        $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type);
-        $ffi->attach([$address => $perl_name] => \@argument_types => $return_type);
-        $ffi->attach($name => \@argument_types => $return_type, \&wrapper);
-        $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type, \&wrapper);
-        $ffi->attach([$address => $perl_name] => \@argument_types => $return_type, \&wrapper);
+    ```perl
+    $ffi->attach($name => \@argument_types => $return_type);
+    $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type);
+    $ffi->attach([$address => $perl_name] => \@argument_types => $return_type);
+    $ffi->attach($name => \@argument_types => $return_type, \&wrapper);
+    $ffi->attach([$c_name => $perl_name] => \@argument_types => $return_type, \&wrapper);
+    $ffi->attach([$address => $perl_name] => \@argument_types => $return_type, \&wrapper);
+    ```
 
     it becomes clear that the maintainer is using the fat comma instead of the
     regular comma to pass consecutive arguments into the `attach` function. 
@@ -590,19 +617,21 @@ summarized below:
     module file, or nested in the `Bit::Set::DB` module. The code that was actually
     generated by Claude looked like this:
 
-        {
-            package Bit::Set::DB::SETOP_COUNT_OPTS;
-            use FFI::Platypus::Record;
-            record_layout_1(
-            'num_cpu_threads' => 'int',
-            'device_id' => 'int',
-            'upd_1st_operand' => 'bool',
-            'upd_2nd_operand' => 'bool',
-            'release_1st_operand' => 'bool',
-            'release_2nd_operand' => 'bool',
-            'release_counts' => 'bool',
-                );
-        }
+    ```perl
+    {
+        package Bit::Set::DB::SETOP_COUNT_OPTS;
+        use FFI::Platypus::Record;
+        record_layout_1(
+        'num_cpu_threads' => 'int',
+        'device_id' => 'int',
+        'upd_1st_operand' => 'bool',
+        'upd_2nd_operand' => 'bool',
+        'release_1st_operand' => 'bool',
+        'release_2nd_operand' => 'bool',
+        'release_counts' => 'bool',
+            );
+    }
+    ```
 
     In the documentation for [FFI::Platypus::Record](https://metacpan.org/pod/FFI::Platypus::Record#record_layout_1), one can clearly see that the function record\_layout\_1 
     receives arguments as `record_layout_1($type => $name, ... );` , i.e. the fat comma 
@@ -616,11 +645,15 @@ summarized below:
     Interestingly enough, the chatbot failed to properly register the type of the 
     record with FFI. In the original output, it included the line:
 
-        $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' => 'SETOP_COUNT_OPTS_t' ) 
+    ```perl
+    $ffi->type( 'Bit::Set::DB::SETOP_COUNT_OPTS' => 'SETOP_COUNT_OPTS_t' ) 
+    ```
 
     rather than the correct
 
-        $ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
+    ```perl
+    $ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
+    ```
 
 - Naive interpretation of returned pointers in the FFI interface
 
@@ -629,28 +662,32 @@ summarized below:
     pointer to provide a single value, or an array of values. Consider the proposal
     for `BitDB_count` in the table driven interface:
 
-        BitDB_count => {
-            args  => ['Bit_DB_T'],
-            ret   => 'int*',
-            check => sub {
-                my ($set) = @_;
-                die "BitDB_count: set cannot be NULL" if !defined $set;
-            }
+    ```perl
+    BitDB_count => {
+        args  => ['Bit_DB_T'],
+        ret   => 'int*',
+        check => sub {
+            my ($set) = @_;
+            die "BitDB_count: set cannot be NULL" if !defined $set;
         }
+    }
+    ```
 
     When `FFI::Platypus` encounters this return type, it will interpret the type
     as a hash reference to a Perl scalar as stated explicitly in the [documentation](https://metacpan.org/pod/FFI::Platypus#Pointers).
     The correct way to handle this is to declare the function as returning an [opaque pointer](https://metacpan.org/pod/FFI::Platypus#Opaque-Pointers-\(buffers-and-strings\)).
     In particular, one would rewrite the last snippet as:
 
-        BitDB_count => {
-            args  => ['Bit_DB_T'],
-            ret   => 'opaque',
-            check => sub {
-                my ($set) = @_;
-                die "BitDB_count: set cannot be NULL" if !defined $set;
-            }
+    ```perl
+    BitDB_count => {
+        args  => ['Bit_DB_T'],
+        ret   => 'opaque',
+        check => sub {
+            my ($set) = @_;
+            die "BitDB_count: set cannot be NULL" if !defined $set;
         }
+    }
+    ```
 
     By doing so, one ends up receiving the memory address of the buffer as a Perl 
     scalar value, rather than a reference to Perl scalar, which must be dereferenced
@@ -665,34 +702,40 @@ test suite, by providing as context the (fixed) modules : `Bit::Set` and
 `Bit::Set::DB` as well as the C source code for "test\_bit.c". The actual
 prompt was the single liner:
 
-    Convert this test file written in C to Perl, using the Bit::Set and Bit::Set::DB modules. 
+```
+Convert this test file written in C to Perl, using the Bit::Set and Bit::Set::DB modules. 
+```
 
 The major problem with this conversion was the failure of the chatbot to
 generate correct code when testing the functions that are loading/extracting
 information from bitsets or containers into raw buffers. For example the 
 following code is supposed to test the extraction of bits from a bitset:
 
-    my $bitset = Bit_new(SIZE_OF_TEST_BIT);
-    Bit_bset( $bitset, 2 );
-    Bit_bset( $bitset, 0 );
+```perl
+my $bitset = Bit_new(SIZE_OF_TEST_BIT);
+Bit_bset( $bitset, 2 );
+Bit_bset( $bitset, 0 );
 
-    my $buffer_size = Bit_buffer_size(SIZE_OF_TEST_BIT);
-    my $buffer = "\0" x $buffer_size;
-    my $bytes = Bit_extract( $bitset, $buffer ); 
+my $buffer_size = Bit_buffer_size(SIZE_OF_TEST_BIT);
+my $buffer = "\0" x $buffer_size;
+my $bytes = Bit_extract( $bitset, $buffer ); 
 
-    my $first_byte = unpack('C', substr($buffer, 0, 1))
-    is( $first_byte, 0b00000101, 'Bit_extract produces correct buffer' );
-    Bit_free( \$bitset );
+my $first_byte = unpack('C', substr($buffer, 0, 1))
+is( $first_byte, 0b00000101, 'Bit_extract produces correct buffer' );
+Bit_free( \$bitset );
+```
 
 However, the code is utterly wrong (and segfaults!) as one has to provide
 the memory address of the buffer, not the Perl scalar value. The fix is to
 generate the buffer as a Perl string and then use `FFI::Platypus::Buffer` 
 to extract the memory address of the storage buffer used by the Perl scalar:
 
-    my $scalar = "\0" x $buffer_size;    
-    my ( $buffer, $size ) = scalar_to_buffer $scalar;   
-    my $bytes =  Bit_extract( $bitset, $buffer );  
-    my $first_byte = unpack( 'C', substr( $scalar, 0, 1 ) ) ; 
+```perl
+my $scalar = "\0" x $buffer_size;    
+my ( $buffer, $size ) = scalar_to_buffer $scalar;   
+my $bytes =  Bit_extract( $bitset, $buffer );  
+my $first_byte = unpack( 'C', substr( $scalar, 0, 1 ) ) ; 
+```
 
 I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl. 
 
@@ -749,11 +792,12 @@ I only had to edit about 6 lines out of ~ 400 to port the C test suite to Perl.
 
 # AUTHOR
 
-Christos Argyropoulos with asistance from Github Copilot (Claude Sonnet 4).
+Christos Argyropoulos and Joe Schaefer after v0.11.
+Christos Argyropoulos with asistance from Github Copilot (Claude Sonnet 4) up to v0.10.
 
 # COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2025 by Christos Argyropoulos.
+This software up to and including v0.10 is copyright (c) 2025 Christos Argyropoulos.
+For versions after v0.10, the distribution as a whole is copyright (c) 2025 Joe Schaefer and Christos Argyropoulos.
 
-This is free software; you can redistribute it and/or modify it under
-the same terms as the Perl 5 programming language system itself.
+This software is distributed under the MIT license

@@ -370,6 +370,96 @@ for my $name ( sort keys %functions ) {
     $ffi->attach(@attach_args);
 }
 
+# -----------------------------------------------------------------------------
+# OO interface
+#
+# Historically the OO API lived in Bit::Set::DB::OO and re-declared methods in
+# the Bit::Set::DB package. That leads to noisy "Subroutine ... redefined"
+# warnings when both modules are loaded. We implement the OO API here and keep
+# Bit::Set::DB::OO as a compatibility shim.
+
+sub new {
+    my ( $class, $length, $num_of_bitsets ) = @_;
+    my $ptr = BitDB_new( $length, $num_of_bitsets );
+    return bless \$ptr, $class;
+}
+
+sub load {
+    my ( $class, $length, $num_of_bitsets, $buffer ) = @_;
+    my $ptr = BitDB_load( $length, $num_of_bitsets, $buffer );
+    return bless \$ptr, $class;
+}
+
+sub DESTROY {
+    my ($self) = @_;
+    BitDB_free($self);
+}
+
+sub length {
+    my ($self) = @_;
+    return BitDB_length($$self);
+}
+
+sub nelem {
+    my ($self) = @_;
+    return BitDB_nelem($$self);
+}
+
+sub count_at {
+    my ( $self, $index ) = @_;
+    return BitDB_count_at( $$self, $index );
+}
+
+sub count {
+    my ($self) = @_;
+    return BitDB_count($$self);
+}
+
+sub get_from {
+    my ( $self, $index ) = @_;
+    my $bit_ptr = BitDB_get_from( $$self, $index );
+    return bless( \$bit_ptr, 'Bit::Set' );
+}
+
+sub put_at {
+    my ( $self, $index, $bitset ) = @_;
+    my $bit_ptr = ref($bitset) ? $$bitset : $bitset;
+
+    # Procedural Bit::Set returns Bit_T pointers as UVs (PTR2UV). If the address
+    # doesn't fit in a signed IV, some consumers (including FFI layers) may
+    # mis-handle it. Normalize to a signed 64-bit integer while preserving bits.
+    if ( !ref($bitset) ) {
+        $bit_ptr = unpack( 'q', pack( 'Q', $bit_ptr ) );
+    }
+    return BitDB_put_at( $$self, $index, $bit_ptr );
+}
+
+sub extract_from {
+    my ( $self, $index, $buffer ) = @_;
+    return BitDB_extract_from( $$self, $index, $buffer );
+}
+
+sub replace_at {
+    my ( $self, $index, $buffer ) = @_;
+    return BitDB_replace_at( $$self, $index, $buffer );
+}
+
+sub clear {
+    my ($self) = @_;
+    return BitDB_clear($$self);
+}
+
+sub clear_at {
+    my ( $self, $index ) = @_;
+    return BitDB_clear_at( $$self, $index );
+}
+
+sub inter_count_cpu {
+    my ( $self, $other, $opts ) = @_;
+    my $other_ptr = ref($other) ? $$other : $other;
+    return BitDB_inter_count_cpu( $$self, $other_ptr, $opts );
+}
+
 # Verification that all C functions are mapped (excluding macros)
 my @c_functions = qw(
   BitDB_new BitDB_free BitDB_length BitDB_nelem BitDB_count_at BitDB_count
