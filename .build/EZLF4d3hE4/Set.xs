@@ -1,4 +1,9 @@
 #include "macros_defs.h"
+MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
+
+PROTOTYPES: DISABLE
+
+INCLUDE: Set_procedural.xs
 
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
 

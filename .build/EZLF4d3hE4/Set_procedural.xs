@@ -1,5 +1,4 @@
 #include "macros_defs.h"
-
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
 
 PROTOTYPES: DISABLE
