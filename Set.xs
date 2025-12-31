@@ -1,5 +1,12 @@
 #include "macros_defs.h"
 
+MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
+
+PROTOTYPES: DISABLE
+
+INCLUDE: Set_procedural.xs
+
+
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
 
 PROTOTYPES: DISABLE
@@ -191,3 +198,4 @@ SV *BSOO_union_count(Bit_T obj, Bit_T other)
       IV rv = Bit_union_count(obj, other);
       ST(0) = sv_newmortal();
       sv_setiv(ST(0), rv);
+

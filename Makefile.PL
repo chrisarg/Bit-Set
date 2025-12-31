@@ -8,7 +8,6 @@ WriteMakefile(
     MIN_PERL_VERSION => "5.38.0",
     XS               => {
         'Set.xs'            => 'Set.c',
-        'Set_procedural.xs' => 'Set_procedural.c',
     },
     OBJECT   => '$(BASEEXT)$(OBJ_EXT)',
     TYPEMAPS => ['typemap'],
