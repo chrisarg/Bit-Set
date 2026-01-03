@@ -1,6 +1,8 @@
 TYPEMAP
 Bit_T             Bit_T
+Bit_DB_T		  Bit_DB_T
 INTEGER_ARRAY_REF  INTEGER_ARRAY_REF
+Bit__Set__DB__SETOP_COUNT_OPTS2	T_PTROBJ
 
 INPUT
 Bit_T
@@ -19,3 +21,10 @@ INTEGER_ARRAY_REF
 	$var = $arg;
 
 
+Bit_DB_T
+	if (!SvROK($arg) || !sv_isobject($arg) || !sv_derived_from($arg, "Bit::Set::DB2"))
+		croak("expected a Bit::Set::DB2 object");
+	{
+		IV tmp = SvIV((SV*)SvRV($arg));
+		$var = INT2PTR($type, tmp);
+	}

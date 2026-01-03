@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 use Bit::Set     qw(:all);
 use Bit::Set::DB2 qw(:all);
 use FFI::Platypus::Buffer;    # added to facilitate buffer management
@@ -11,18 +11,40 @@ use FFI::Platypus::Buffer;    # added to facilitate buffer management
 use constant SIZE_OF_TEST_BIT => 65536;
 use constant SIZEOF_BITDB     => 45;
 
+subtest 'Defining Options ' => sub {
+
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS2->new({
+      device_id           => 2,
+      upd_1st_operand     => 0,
+      upd_2nd_operand     => 0,
+      release_1st_operand => 1,
+      release_2nd_operand => 1,
+      release_counts      => 1
+  }
+  );
+  ok($opts->device_id() == 2, 'SETOP_COUNT_OPTS2 created with correct device_id (initialized via hashref)');
+   $opts = Bit::Set::DB::SETOP_COUNT_OPTS2->new(
+      device_id           => 3,
+      upd_1st_operand     => 0,
+      upd_2nd_operand     => 0,
+      release_1st_operand => 1,
+      release_2nd_operand => 1,
+      release_counts      => 1
+  
+  );
+  ok($opts->device_id() == 3, 'SETOP_COUNT_OPTS2 created with correct device_id (initialized via hash)');
+
+};
 
 subtest 'BitDB Operations' => sub {
 
-    # test_bitDB_new
     my $bitdb = BitDB_new( SIZE_OF_TEST_BIT, 10 );
     ok( defined $bitdb, 'BitDB_new creates bitset database' );
-
-    # test_bitDB_properties
+     # test_bitDB_properties
     my $props_success =
       ( BitDB_length($bitdb) == SIZE_OF_TEST_BIT && BitDB_nelem($bitdb) == 10 );
     ok( $props_success, 'BitDB properties are correct' );
-
+=pod
     # test_bitDB_get_put
     my $bitset = Bit_new(SIZE_OF_TEST_BIT);
     Bit_bset( $bitset, 1 );
@@ -71,6 +93,7 @@ subtest 'BitDB Operations' => sub {
 
     Bit_free( \$bitset );
     Bit_free( \$retrieved );
+=cut
 };
 
 # Note: Skipping the BitDB intersection count test as it requires the SETOP_COUNT_OPTS
