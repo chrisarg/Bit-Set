@@ -11,6 +11,6 @@ WriteMakefile(
     XSMULTI          => 1,
     OBJECT           => '$(BASEEXT)$(OBJ_EXT)',
     TYPEMAPS         => ['typemap'],
-    INC              => join(' ', Alien::Bit->cflags, '-I.'),
+    INC              => join(' ', Alien::Bit->cflags, '-I.', '-Ilib/Bit/Set'),
     LIBS             => [ Alien::Bit->libs ],
 );
