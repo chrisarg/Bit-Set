@@ -1,11 +1,11 @@
 #!/home/chrisarg/perl5/perlbrew/perls/current/bin/perl
-package Bit::Set::DB::OO;
+package Bit::Set::DB::OO2;
 
 use strict;
 use warnings;
 
 use Alien::Bit;
-use Bit::Set::DB qw( :all );
+use Bit::Set::DB2 qw( :all );
 use Bit::Set::OO;
 use FFI::Platypus;
 
@@ -16,7 +16,7 @@ use FFI::Platypus;
 
 # Creation and Destruction
 
-package Bit::Set::DB {
+package Bit::Set::DB2    {
 
     sub new {
         my ( $class, $length, $num_of_bitsets ) = @_;
