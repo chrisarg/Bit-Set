@@ -13,4 +13,5 @@ WriteMakefile(
     TYPEMAPS => ['typemap'],
     INC      => Alien::Bit->cflags,
     LIBS     => [ Alien::Bit->libs ],
+	OPTIMIZE => '-O3',
 );
