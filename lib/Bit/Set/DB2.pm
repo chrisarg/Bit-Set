@@ -1,5 +1,5 @@
 #!/home/chrisarg/perl5/perlbrew/perls/current/bin/perl
-package Bit::Set::DB;
+package Bit::Set::DB2;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use FFI::Platypus::Record;
 # Define the record class as a nested package
 {
 
-    package Bit::Set::DB::SETOP_COUNT_OPTS;
+    package Bit::Set::DB2::SETOP_COUNT_OPTS;
 
     use FFI::Platypus::Record;
     record_layout_1(
@@ -37,7 +37,7 @@ $ffi->type( 'opaque' => 'Bit_T' );
 $ffi->type( 'opaque*' => 'Bit_DB_T_Ptr' );
 
 # Register the nested record class as a type
-$ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
+$ffi->type( 'record(Bit::Set::DB2::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
   ;    ## LMM didn't generate the record token in the definition
 
 # Define a helper for debug checks
