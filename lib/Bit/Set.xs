@@ -4,7 +4,7 @@ MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
 
 PROTOTYPES: DISABLE
 
-INCLUDE: Set_procedural.xs
+INCLUDE: Set_procedural.xs.inc
 
 
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
