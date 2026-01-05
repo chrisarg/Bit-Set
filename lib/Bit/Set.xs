@@ -1,5 +1,6 @@
 #include "macros_defs.h"
 
+
 MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BS_
 
 PROTOTYPES: DISABLE
@@ -11,55 +12,66 @@ MODULE = Bit::Set    PACKAGE = Bit::Set    PREFIX = BSOO_
 
 PROTOTYPES: DISABLE
 
-
-SV *BSOO_new(char *class, IV length)
+Bit_T_obj
+BSOO_new(char *class, IV length)
 
     CODE:
-      Bit_T obj = Bit_new(length);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), class), PTR2IV(obj));
+        Bit_T_obj obj = Bit_new(length);
+        RETVAL = obj;
+    OUTPUT:
+        RETVAL
 
-void BSOO_DESTROY(Bit_T obj)
+void BSOO_DESTROY(Bit_T_obj obj)
 
     CODE:
       Bit_free(&obj);
 
-SV *BSOO_load(char *class, IV length, char *buffer)
+Bit_T_obj
+BSOO_load(char *class, IV length, char *buffer)
 
     CODE:
       Bit_T obj = Bit_load(length,(void *)buffer);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), class), PTR2IV(obj));
+      RETVAL = obj;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_extract(Bit_T obj, char *buffer)
+IV
+BSOO_extract(Bit_T_obj obj, char *buffer)
 
     CODE:
       IV rv = Bit_extract(obj,(void *)buffer);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_buffer_size(char *class, IV length)
+IV
+BSOO_buffer_size(char *class, IV length)
 
     CODE:
       IV rv = Bit_buffer_size(length);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_length(Bit_T obj)
+IV
+BSOO_length(Bit_T_obj obj)
 
     CODE:
       IV rv = Bit_length(obj);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_count(Bit_T obj)
+IV
+BSOO_count(Bit_T_obj obj)
 
     CODE:
       IV rv = Bit_count(obj);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-void BSOO_aset(Bit_T obj, INTEGER_ARRAY_REF indices)
+void BSOO_aset(Bit_T_obj obj, INTEGER_ARRAY_REF indices)
 
     CODE:
       AV *av = (AV *)SvRV(indices);
@@ -71,12 +83,12 @@ void BSOO_aset(Bit_T obj, INTEGER_ARRAY_REF indices)
       FREE_ARRAY_IN_STACK_OR_HEAP(idx);
 
 
-void BSOO_bset(Bit_T obj, IV index)
+void BSOO_bset(Bit_T_obj obj, IV index)
 
     CODE:
       Bit_bset(obj, index);
 
-void BSOO_aclear(Bit_T obj, INTEGER_ARRAY_REF indices)
+void BSOO_aclear(Bit_T_obj obj, INTEGER_ARRAY_REF indices)
 
     CODE:
       AV *av = (AV *)SvRV(indices);
@@ -88,114 +100,128 @@ void BSOO_aclear(Bit_T obj, INTEGER_ARRAY_REF indices)
 
       FREE_ARRAY_IN_STACK_OR_HEAP(idx);
 
-void BSOO_bclear(Bit_T obj, IV index)
+void BSOO_bclear(Bit_T_obj obj, IV index)
 
     CODE:
       Bit_bclear(obj, index);
 
-void BSOO_clear(Bit_T obj, IV lo, IV hi)
+void BSOO_clear(Bit_T_obj obj, IV lo, IV hi)
 
     CODE:
       Bit_clear(obj, lo, hi);
 
-SV *BSOO_get(Bit_T obj, IV index)
+IV
+BSOO_get(Bit_T_obj obj, IV index)
 
     CODE:
       IV rv = Bit_get(obj, index);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-void BSOO_not(Bit_T obj, IV lo, IV hi)
+void BSOO_not(Bit_T_obj obj, IV lo, IV hi)
 
     CODE:
       Bit_not(obj, lo, hi);
 
-SV *BSOO_put(Bit_T obj, IV index, IV bit)
+IV
+BSOO_put(Bit_T_obj obj, IV index, IV bit)
 
     CODE:
       IV rv = Bit_put(obj, index, bit);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-void BSOO_set(Bit_T obj, IV lo, IV hi)
+void BSOO_set(Bit_T_obj obj, IV lo, IV hi)
 
     CODE:
       Bit_set(obj, lo, hi);
 
-SV *BSOO_eq(Bit_T obj, Bit_T other)
+IV
+BSOO_eq(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       IV rv = Bit_eq(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_leq(Bit_T obj, Bit_T other)
+IV
+BSOO_leq(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       IV rv = Bit_leq(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_lt(Bit_T obj, Bit_T other)
+IV
+BSOO_lt(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       IV rv = Bit_lt(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+      RETVAL = rv;
+    OUTPUT:
+      RETVAL
 
-SV *BSOO_diff(Bit_T obj, Bit_T other)
+SV*
+BSOO_diff(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       Bit_T rv = Bit_diff(obj, other);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), "Bit::Set"), PTR2IV(rv));
+      RETURN_BLESSED_REFERENCE("Bit::Set",rv);
 
-SV *BSOO_inter(Bit_T obj, Bit_T other)
+SV*
+BSOO_inter(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       Bit_T rv = Bit_inter(obj, other);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), "Bit::Set"), PTR2IV(rv));
+      RETURN_BLESSED_REFERENCE("Bit::Set",rv);
 
-SV *BSOO_minus(Bit_T obj, Bit_T other)
+SV*
+BSOO_minus(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       Bit_T rv = Bit_minus(obj, other);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), "Bit::Set"), PTR2IV(rv));
+      RETURN_BLESSED_REFERENCE("Bit::Set",rv);
 
-SV *BSOO_union(Bit_T obj, Bit_T other)
+SV*
+BSOO_union(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
       Bit_T rv = Bit_union(obj, other);
-      ST(0)  = sv_newmortal();
-      sv_setiv(newSVrv(ST(0), "Bit::Set"), PTR2IV(rv));
+      RETURN_BLESSED_REFERENCE("Bit::Set",rv);
 
-SV *BSOO_diff_count(Bit_T obj, Bit_T other)
-
-    CODE:
-      IV rv = Bit_diff_count(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
-
-SV *BSOO_inter_count(Bit_T obj, Bit_T other)
+IV
+BSOO_diff_count(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
-      IV rv = Bit_inter_count(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+        RETVAL = Bit_diff_count(obj, other);
+    OUTPUT:
+        RETVAL
 
-SV *BSOO_minus_count(Bit_T obj, Bit_T other)
-
-    CODE:
-      IV rv = Bit_minus_count(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
-
-SV *BSOO_union_count(Bit_T obj, Bit_T other)
+IV
+BSOO_inter_count(Bit_T_obj obj, Bit_T_obj other)
 
     CODE:
-      IV rv = Bit_union_count(obj, other);
-      ST(0) = sv_newmortal();
-      sv_setiv(ST(0), rv);
+        RETVAL = (IV)Bit_inter_count(obj, other);
+    OUTPUT:
+        RETVAL
+
+IV
+BSOO_minus_count(Bit_T_obj obj, Bit_T_obj other)
+
+    CODE:
+        RETVAL = Bit_minus_count(obj, other);
+    OUTPUT:
+        RETVAL
+
+IV
+BSOO_union_count(Bit_T_obj obj, Bit_T_obj other)
+
+    CODE:
+        RETVAL = Bit_union_count(obj, other);
+    OUTPUT:
+        RETVAL
 

@@ -79,10 +79,10 @@ Gets or sets whether to release count results from memory after operations compl
 
 =head1 SEE ALSO
 
-L<Bit::Set::DB2>, L<Bit::Set::DB>, L<Bit::Set>
+ L<Bit::Set::DB>, L<Bit::Set>
 
 =head1 AUTHOR
 
-Bit::Set development team
+Christos Argyropoulos 2026
 
 =cut

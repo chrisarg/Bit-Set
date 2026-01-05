@@ -9,7 +9,7 @@
  ******************************************************************************/
 #define STACK_MAX 65536 // maximum size array to allocate at the stack
 
-#define UNDEF_ERROR    "Bitset cannot be undef"
+#define UNDEF_ERROR "Bitset cannot be undef"
 
 #define UNDEF_DB_ERROR "Bit_DB cannot be undef"
 
@@ -19,7 +19,7 @@
 /******************************************************************************
  *                                   MACROS
  ******************************************************************************/
-#define SV_TO_TYPE(type, sv, msg)                                             \
+#define SV_TO_TYPE(type, sv, msg)                                              \
   (!SvOK(sv) ? (croak(msg), (type)0)                                           \
              : INT2PTR(type, SvIV(SvROK(sv) ? SvRV(sv) : (sv))))
 
@@ -48,10 +48,25 @@
     }                                                                          \
   } while (0)
 
+#define RETURN_BLESSED_REFERENCE(classname, obj)                               \
+  do {                                                                         \
+    ST(0) = sv_newmortal();                                                    \
+    sv_setiv(newSVrv(ST(0), (classname)), PTR2IV((obj)));                      \
+  } while (0);
+
+#define RETURN_INTEGER_SCALAR(integerobject)                                   \
+  do {                                                                         \
+    ST(0) = sv_newmortal();                                                    \
+    sv_setiv(ST(0), integerobject);                                            \
+  } while (0);
+
+
 /******************************************************************************
  *                                   TYPEDEFS
  ******************************************************************************/
 
 typedef SV *INTEGER_ARRAY_REF;
+typedef Bit_T Bit_T_obj;
+typedef Bit_DB_T Bit_DB_T_obj;
 
 // note SETOP_COUNT_OPTS typemap is defined in typemap file

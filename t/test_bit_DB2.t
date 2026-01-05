@@ -44,7 +44,7 @@ subtest 'BitDB Operations' => sub {
     my $props_success =
       ( BitDB_length($bitdb) == SIZE_OF_TEST_BIT && BitDB_nelem($bitdb) == 10 );
     ok( $props_success, 'BitDB properties are correct' );
-=pod
+
     # test_bitDB_get_put
     my $bitset = Bit_new(SIZE_OF_TEST_BIT);
     Bit_bset( $bitset, 1 );
@@ -59,7 +59,7 @@ subtest 'BitDB Operations' => sub {
 
     Bit_free( \$bitset );
     Bit_free( \$retrieved );
-
+=pod
     # test_bitDB_extract_replace
     $bitset = Bit_new(SIZE_OF_TEST_BIT);
     Bit_bset( $bitset, 1 );

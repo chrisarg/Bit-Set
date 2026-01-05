@@ -1,8 +1,8 @@
-SV *
+Bit_T
 BS_Bit_new(IV length)
     CODE:
         Bit_T set = Bit_new((int)length);
-        RETVAL = newSVuv(PTR2UV(set));
+        RETVAL = set;
     OUTPUT:
         RETVAL
 
@@ -17,12 +17,12 @@ BS_Bit_free(SV *set_ref)
         Bit_free(&set);
 
 
-SV *
+Bit_T
 BS_Bit_load(IV length, SV *buffer)
     CODE:
         void *ptr = SV_TO_VOID(buffer);
         Bit_T set = Bit_load((int)length, ptr);
-        RETVAL = newSVuv(PTR2UV(set));
+        RETVAL = set;
     OUTPUT:
         RETVAL
 
@@ -69,7 +69,7 @@ BS_Bit_aset(SV *set, INTEGER_ARRAY_REF indices)
         if(n <=STACK_MAX) {
             idx =stack_buf;
         } else {
-            Newx(idx, n,int );  // no need to handle null here, C will handle it
+            Newx(idx, n,int ); 
         }
         for (int i = 0; i < n; ++i) {
             SV **svp = av_fetch(av, i, 0);
@@ -98,7 +98,7 @@ BS_Bit_aclear(SV *set, INTEGER_ARRAY_REF indices)
         if(n <=STACK_MAX) {
             idx =stack_buf;
         } else {
-            Newx(idx, n,int );  // no need to handle null here, C will handle it
+            Newx(idx, n,int );
         }
         for (int i = 0; i < n; ++i) {
             SV **svp = av_fetch(av, i, 0);
@@ -177,43 +177,43 @@ BS_Bit_lt(SV *s, SV *t)
     OUTPUT:
         RETVAL
 
-SV *
+Bit_T
 BS_Bit_diff(SV *s, SV *t)
     CODE:
         Bit_T ss = SV_TO_TYPE(Bit_T, s, UNDEF_ERROR);
         Bit_T tt = SV_TO_TYPE(Bit_T, t, UNDEF_ERROR);
         Bit_T rv = Bit_diff(ss, tt);
-        RETVAL = newSVuv(PTR2UV(rv));
+        RETVAL = rv;
     OUTPUT:
         RETVAL
 
-SV *
+Bit_T
 BS_Bit_inter(SV *s, SV *t)
     CODE:
         Bit_T ss = SV_TO_TYPE(Bit_T, s, UNDEF_ERROR);
         Bit_T tt = SV_TO_TYPE(Bit_T, t, UNDEF_ERROR);
         Bit_T rv = Bit_inter(ss, tt);
-        RETVAL = newSVuv(PTR2UV(rv));
+        RETVAL = rv;
     OUTPUT:
         RETVAL
 
-SV *
+Bit_T
 BS_Bit_minus(SV *s, SV *t)
     CODE:
         Bit_T ss = SV_TO_TYPE(Bit_T, s, UNDEF_ERROR);
         Bit_T tt = SV_TO_TYPE(Bit_T, t, UNDEF_ERROR);
         Bit_T rv = Bit_minus(ss, tt);
-        RETVAL = newSVuv(PTR2UV(rv));
+        RETVAL = rv;
     OUTPUT:
         RETVAL
 
-SV *
+Bit_T
 BS_Bit_union(SV *s, SV *t)
     CODE:
         Bit_T ss = SV_TO_TYPE(Bit_T, s, UNDEF_ERROR);
         Bit_T tt = SV_TO_TYPE(Bit_T, t, UNDEF_ERROR);
         Bit_T rv = Bit_union(ss, tt);
-        RETVAL = newSVuv(PTR2UV(rv));
+        RETVAL = rv;
     OUTPUT:
         RETVAL
 
