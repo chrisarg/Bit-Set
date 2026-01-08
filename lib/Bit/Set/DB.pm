@@ -3,374 +3,16 @@ package Bit::Set::DB;
 
 use strict;
 use warnings;
-use FFI::Platypus::Record;
+use XSLoader();
 
-# Define the record class as a nested package
-{
 
-    package Bit::Set::DB::SETOP_COUNT_OPTS;
 
-    use FFI::Platypus::Record;
-    record_layout_1(
-        'int'  => 'num_cpu_threads',
-        'int'  => 'device_id',
-        'bool' => 'upd_1st_operand',
-        'bool' => 'upd_2nd_operand',
-        'bool' => 'release_1st_operand',
-        'bool' => 'release_2nd_operand',
-        'bool' => 'release_counts',
-    );
-}
+# Load the SetDB XS library
+XSLoader::load('Bit::Set::DB');
 
-use FFI::Platypus;
-use Alien::Bit;
+# Also load the XS-based SETOP_COUNT_OPTS class for backward compatibility
+use Bit::Set::DB::SETOP_COUNT_OPTS;
 
-# Set up the FFI object
-my $ffi = FFI::Platypus->new( api => 2 );
-$ffi->lib( Alien::Bit->dynamic_libs );
-
-# Define opaque types
-$ffi->type( 'opaque' => 'Bit_DB_T' );
-$ffi->type( 'opaque' => 'Bit_T' );
-
-# LLM did not create an opaque pointer to a pointer
-$ffi->type( 'opaque*' => 'Bit_DB_T_Ptr' );
-
-# Register the nested record class as a type
-$ffi->type( 'record(Bit::Set::DB::SETOP_COUNT_OPTS)' => 'SETOP_COUNT_OPTS_t' )
-  ;    ## LMM didn't generate the record token in the definition
-
-# Define a helper for debug checks
-# LLM provided this: use constant DEBUG => $ENV{DEBUG};
-BEGIN {
-    use constant DEBUG => $ENV{DEBUG} // 0;
-    if (DEBUG) {
-        print "* Debugging is enabled\n";
-    }
-}
-
-# Function definitions for FFI attachment
-my %functions = (
-
-    # Creation / Destruction
-    BitDB_new => {
-        args  => [ 'int', 'int' ],
-        ret   => 'Bit_DB_T',
-        check => sub {
-            my ( $length, $num_of_bitsets ) = @_;
-            die "BitDB_new: length must be >= 0 and <= INT_MAX"
-              if $length < 0 || $length > 2147483647;
-            die "BitDB_new: num_of_bitsets must be >= 0 and <= INT_MAX"
-              if $num_of_bitsets < 0 || $num_of_bitsets > 2147483647;
-        }
-    },
-    BitDB_free => {
-        args => ['Bit_DB_T_Ptr'],
-        ret  => 'opaque',
-    },
-    BitDB_load => {
-        args => ['int','int','opaque'],
-        ret  => 'Bit_DB_T',
-     	check => sub {
-            my ( $length, $num_of_bitsets ) = @_;
-            die "BitDB_new: length must be >= 0 and <= INT_MAX"
-              if $length < 0 || $length > 2147483647;
-            die "BitDB_new: num_of_bitsets must be >= 0 and <= INT_MAX"
-              if $num_of_bitsets < 0 || $num_of_bitsets > 2147483647;
-        }
-    },
-
-    # Properties
-    BitDB_length => {
-        args  => ['Bit_DB_T'],
-        ret   => 'int',
-        check => sub {
-            my ($set) = @_;
-            die "BitDB_length: set cannot be NULL" if !defined $set;
-        }
-    },
-    BitDB_nelem => {
-        args  => ['Bit_DB_T'],
-        ret   => 'int',
-        check => sub {
-            my ($set) = @_;
-            die "BitDB_nelem: set cannot be NULL" if !defined $set;
-        }
-    },
-    BitDB_count_at => {
-        args  => [ 'Bit_DB_T', 'int' ],
-        ret   => 'int',
-        check => sub {
-            my ( $set, $index ) = @_;
-            die "BitDB_count_at: set cannot be NULL" if !defined $set;
-            die "BitDB_count_at: index must be >= 0" if $index < 0;
-        }
-    },
-    BitDB_count => {
-        args  => ['Bit_DB_T'],
-        ret   => 'opaque',       # LLM returned: ret   => 'int',
-        check => sub {
-            my ($set) = @_;
-            die "BitDB_count: set cannot be NULL" if !defined $set;
-        }
-    },
-
-    # Manipulation
-    BitDB_get_from => {
-        args  => [ 'Bit_DB_T', 'int' ],
-        ret   => 'Bit_T',
-        check => sub {
-            my ( $set, $index ) = @_;
-            die "BitDB_get_from: set cannot be NULL" if !defined $set;
-            die "BitDB_get_from: index must be >= 0" if $index < 0;
-        }
-    },
-    BitDB_put_at => {
-        args  => [ 'Bit_DB_T', 'int', 'Bit_T' ],
-        ret   => 'void',
-        check => sub {
-            my ( $set, $index, $bitset ) = @_;
-            die "BitDB_put_at: set cannot be NULL"    if !defined $set;
-            die "BitDB_put_at: index must be >= 0"    if $index < 0;
-            die "BitDB_put_at: bitset cannot be NULL" if !defined $bitset;
-        }
-    },
-    BitDB_extract_from => {
-        args  => [ 'Bit_DB_T', 'int', 'opaque' ],
-        ret   => 'int',
-        check => sub {
-            my ( $set, $index, $buffer ) = @_;
-            die "BitDB_extract_from: set cannot be NULL"    if !defined $set;
-            die "BitDB_extract_from: index must be >= 0"    if $index < 0;
-            die "BitDB_extract_from: buffer cannot be NULL" if !defined $buffer;
-        }
-    },
-    BitDB_replace_at => {
-        args  => [ 'Bit_DB_T', 'int', 'opaque' ],
-        ret   => 'void',
-        check => sub {
-            my ( $set, $index, $buffer ) = @_;
-            die "BitDB_replace_at: set cannot be NULL"    if !defined $set;
-            die "BitDB_replace_at: index must be >= 0"    if $index < 0;
-            die "BitDB_replace_at: buffer cannot be NULL" if !defined $buffer;
-        }
-    },
-    BitDB_clear => {
-        args  => ['Bit_DB_T'],
-        ret   => 'void',
-        check => sub {
-            my ($set) = @_;
-            die "BitDB_clear: set cannot be NULL" if !defined $set;
-        }
-    },
-    BitDB_clear_at => {
-        args  => [ 'Bit_DB_T', 'int' ],
-        ret   => 'void',
-        check => sub {
-            my ( $set, $index ) = @_;
-            die "BitDB_clear_at: set cannot be NULL" if !defined $set;
-            die "BitDB_clear_at: index must be >= 0" if $index < 0;
-        }
-    },
-
-    # SETOP Count Store CPU
-    BitDB_inter_count_store_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_inter_count_store_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_inter_count_store_cpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_union_count_store_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_union_count_store_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_union_count_store_cpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_diff_count_store_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_diff_count_store_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_diff_count_store_cpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_minus_count_store_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_minus_count_store_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_minus_count_store_cpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-
-    # SETOP Count Store GPU
-    BitDB_inter_count_store_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_inter_count_store_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_inter_count_store_gpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_union_count_store_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_union_count_store_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_union_count_store_gpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_diff_count_store_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_diff_count_store_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_diff_count_store_gpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-    BitDB_minus_count_store_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'int*', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $buffer, $opts ) = @_;
-            die "BitDB_minus_count_store_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-            die "BitDB_minus_count_store_gpu: buffer cannot be NULL"
-              if !defined $buffer;
-        }
-    },
-
-    # SETOP Count CPU
-    BitDB_inter_count_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_inter_count_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_union_count_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_union_count_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_diff_count_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_diff_count_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_minus_count_cpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_minus_count_cpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-
-    # SETOP Count GPU
-    BitDB_inter_count_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_inter_count_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_union_count_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_union_count_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_diff_count_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_diff_count_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-    BitDB_minus_count_gpu => {
-        args  => [ 'Bit_DB_T', 'Bit_DB_T', 'SETOP_COUNT_OPTS_t' ],
-        ret   => 'opaque',    # LLM returned: ret   => 'int',
-        check => sub {
-            my ( $bit, $bits, $opts ) = @_;
-            die "BitDB_minus_count_gpu: containers cannot be NULL"
-              if !defined $bit || !defined $bits;
-        }
-    },
-);
-
-# Attach all functions
-for my $name ( sort keys %functions ) {
-    my $spec        = $functions{$name};
-    my @attach_args = ( $name, $spec->{args}, $spec->{ret} );
-
-    if (DEBUG)
-    { ##  if (DEBUG && exists $spec->{check}) { -> LLM version, break into nested ifs
-        if ( exists $spec->{check} ) {
-            my $checker = $spec->{check};
-
-        # version returned by the LLM
-        #            push @attach_args, wrapper => sub { # as created by the LLM
-        #                my $orig = shift;
-        #                $checker->(@_);
-        #                return $orig->(@_);
-        #            };
-
-            push @attach_args, sub {
-                my $orig = shift;
-                $checker->(@_);
-                return $orig->(@_);
-            };
-        }
-    }
-
-    $ffi->attach(@attach_args);
-}
-
-# Verification that all C functions are mapped (excluding macros)
 my @c_functions = qw(
   BitDB_new BitDB_free BitDB_length BitDB_nelem BitDB_count_at BitDB_count
   BitDB_get_from BitDB_put_at BitDB_extract_from BitDB_replace_at BitDB_clear BitDB_clear_at BitDB_load
@@ -380,29 +22,58 @@ my @c_functions = qw(
   BitDB_inter_count_gpu BitDB_union_count_gpu BitDB_diff_count_gpu BitDB_minus_count_gpu
 );
 
-my %perl_functions;
-@perl_functions{ keys %functions } = ();
-for my $c_func (@c_functions) {
-    die "FATAL: C function '$c_func' not implemented in Bit::Set::DB"
-      unless exists $perl_functions{$c_func};
-}
-
-
-
-# LLM forgot to export the Bit::Set functions
 use Exporter 'import';
-our @EXPORT_OK   = keys %functions;
+our @EXPORT_OK   = @c_functions;
 our %EXPORT_TAGS = ( all => [@EXPORT_OK] );
 
 our @EXPORT = qw(BitDB_new BitDB_free);
-1;
 
+1;
 
 __END__
 
 =head1 NAME
 
-Bit::Set::DB - Perl procedural interface for bitset containers from the C<Bit> C library
+Bit::Set::DB - Extended XS-based interface for BitDB set operations
+
+=head1 SYNOPSIS
+
+    use Bit::Set::DB;
+    
+    # Use the main DB interface
+    my $DB = Bit::Set::DB->new();
+    print "Version: ", $DB->version, "\n";
+    
+    # Also provides access to SETOP_COUNT_OPTS
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new();
+    my $OPTS = Bit::Set::DB::SETOP_COUNT_OPTS->new({
+        device_id => 1,
+        upd_1st_operand => 1,
+        upd_2nd_operand => 0,
+        release_1st_operand => 1,
+        release_2nd_operand => 1,
+        release_counts => 1
+    });
+
+=head1 DESCRIPTION
+
+This module provides an extended XS-based interface for BitDB set operations.
+It includes both its own XS implementation and access to the SETOP_COUNT_OPTS class.
+
+=head1 SEE ALSO
+
+L<Bit::Set>, L<Bit::Set::DB>, L<Bit::Set::DB::SETOP_COUNT_OPTS>
+
+=head1 AUTHOR
+
+chrisarg
+
+=head1 COPYRIGHT AND LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
 =head1 SYNOPSIS
 
@@ -533,13 +204,13 @@ Perform the respective set operation count on the CPU:
 
 =over 5
 
-=item B<BitDB_inter_count_cpu(db1, db2, opts)>
+=item B<BitDB_inter_count_cpu(db1, DB, opts)>
 
-=item B<BitDB_union_count_cpu(db1, db2, opts)>
+=item B<BitDB_union_count_cpu(db1, DB, opts)>
 
-=item B<BitDB_diff_count_cpu(db1, db2, opts)>
+=item B<BitDB_diff_count_cpu(db1, DB, opts)>
 
-=item B<BitDB_minus_count_cpu(db1, db2, opts)>
+=item B<BitDB_minus_count_cpu(db1, DB, opts)>
 
 =back
 
@@ -547,13 +218,13 @@ Perform the respective set operation count on the GPU:
 
 =over 5
 
-=item B<BitDB_inter_count_gpu(db1, db2, opts)>
+=item B<BitDB_inter_count_gpu(db1, DB, opts)>
 
-=item B<BitDB_union_count_gpu(db1, db2, opts)>
+=item B<BitDB_union_count_gpu(db1, DB, opts)>
 
-=item B<BitDB_diff_count_gpu(db1, db2, opts)>
+=item B<BitDB_diff_count_gpu(db1, DB, opts)>
 
-=item B<BitDB_minus_count_gpu(db1, db2, opts)>
+=item B<BitDB_minus_count_gpu(db1, DB, opts)>
 
 =back
 
@@ -561,13 +232,13 @@ Perform the respective set operation count on the CPU and store results in C<buf
 
 =over 5
 
-=item B<BitDB_inter_count_store_cpu(db1, db2, buffer, opts)>
+=item B<BitDB_inter_count_store_cpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_union_count_store_cpu(db1, db2, buffer, opts)>
+=item B<BitDB_union_count_store_cpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_diff_count_store_cpu(db1, db2, buffer, opts)>
+=item B<BitDB_diff_count_store_cpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_minus_count_store_cpu(db1, db2, buffer, opts)>
+=item B<BitDB_minus_count_store_cpu(db1, DB, buffer, opts)>
 
 =back
 
@@ -575,13 +246,13 @@ Perform the respective set operation count on the GPU and store results in C<buf
 
 =over 5
 
-=item B<BitDB_inter_count_store_gpu(db1, db2, buffer, opts)>
+=item B<BitDB_inter_count_store_gpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_union_count_store_gpu(db1, db2, buffer, opts)>
+=item B<BitDB_union_count_store_gpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_diff_count_store_gpu(db1, db2, buffer, opts)>
+=item B<BitDB_diff_count_store_gpu(db1, DB, buffer, opts)>
 
-=item B<BitDB_minus_count_store_gpu(db1, db2, buffer, opts)>
+=item B<BitDB_minus_count_store_gpu(db1, DB, buffer, opts)>
 
 =back
 
@@ -630,14 +301,14 @@ them to C<Bit::Set::DB> containers.
 
     # Create BitDB containers
     my $db1 = BitDB_new( $size, $num_of_bits );
-    my $db2 = BitDB_new( $size, $num_of_ref_bits );
+    my $DB = BitDB_new( $size, $num_of_ref_bits );
 
     # Now put the bitsets into the containers
     for my $i ( 0 .. $num_of_bits - 1 ) {
         BitDB_put_at( $db1, $i, $bits[$i] );
     }
     for my $i ( 0 .. $num_of_ref_bits - 1 ) {
-        BitDB_put_at( $db2, $i, $bitsets[$i] );
+        BitDB_put_at( $DB, $i, $bitsets[$i] );
     }
 
 =item Example 2: Obtaining the counts of bitset operations using containers
@@ -666,7 +337,7 @@ C<FFI::Platypus::Buffer> modules.
         release_2nd_operand => 0,
         release_counts      => 0
     );
-    my $nelem = BitDB_nelem($db1) * BitDB_nelem($db2);
+    my $nelem = BitDB_nelem($db1) * BitDB_nelem($DB);
 
     # Method 1: Using Perl arrays of Bit::Set
     my @cpu_set_counts;
@@ -678,7 +349,7 @@ C<FFI::Platypus::Buffer> modules.
     }
 
     # Method 2: Using Bit::Set::DB containers
-    my $cpu_DB_counts_ptr = BitDB_inter_count_cpu( $db1, $db2, $opts );
+    my $cpu_DB_counts_ptr = BitDB_inter_count_cpu( $db1, $DB, $opts );
 
     my $scalar = buffer_to_scalar $cpu_DB_counts_ptr, $nelem*$Config{intsize};
     my  @cpu_DB_counts = unpack( "i[$nelem]", $scalar );
@@ -740,7 +411,7 @@ intermediate results, we would ue the following code that continues Example 2:
     );
 
     # Method 3: Using Bit::Set::DB containers in the GPU
-    my $gpu_DB_counts_ptr = BitDB_inter_count_gpu( $db1, $db2, $gpu_opts );
+    my $gpu_DB_counts_ptr = BitDB_inter_count_gpu( $db1, $DB, $gpu_opts );
 
     my $gpu_scalar = buffer_to_scalar $gpu_DB_counts_ptr, $nelem*$Config{intsize};
     my  @gpu_DB_counts = unpack( "i[$nelem]", $gpu_scalar );
@@ -859,7 +530,7 @@ a data type (exported from the L<PDL::Typeshttps://metacpan.org/pod/PDL::Types>)
 (provided as a Perl array reference), and the number of dimensions. 
 The actual access pattern in Perl is rather straightforward:
 
-    my $gpu_DB_counts_ptr = BitDB_inter_count_gpu( $db1, $db2, $gpu_opts );
+    my $gpu_DB_counts_ptr = BitDB_inter_count_gpu( $db1, $DB, $gpu_opts );
     my $pdl = mkndarray( $gpu_DB_counts_ptr, $PDL_L, [$nelem], 1 );
 
     print $pdl->index($_)," " for 0 .. $nelem - 1;
@@ -1006,14 +677,14 @@ The code for the benchmark runs as a commandline command script and is the follo
 
     # Create BitDB containers
     my $db1 = BitDB_new( $size, $num_of_bits );
-    my $db2 = BitDB_new( $size, $num_of_ref_bits );
+    my $DB = BitDB_new( $size, $num_of_ref_bits );
 
     for my $i ( 0 .. $num_of_bits - 1 ) {
         BitDB_put_at( $db1, $i, $bits[$i] );
     }
 
     for my $i ( 0 .. $num_of_ref_bits - 1 ) {
-        BitDB_put_at( $db2, $i, $bitsets[$i] );
+        BitDB_put_at( $DB, $i, $bitsets[$i] );
     }
 
     print "Finished allocating BitDB\n";
@@ -1039,7 +710,7 @@ The code for the benchmark runs as a commandline command script and is the follo
     }
 
     sub database_match_container_cpu {
-        my ( $db1, $db2, $num_threads ) = @_;
+        my ( $db1, $DB, $num_threads ) = @_;
 
         # Create the options structure for CPU processing
         my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new(
@@ -1051,9 +722,9 @@ The code for the benchmark runs as a commandline command script and is the follo
             release_2nd_operand => 0,
             release_counts      => 0
         );
-        my $nelem = BitDB_nelem($db1) * BitDB_nelem($db2);
+        my $nelem = BitDB_nelem($db1) * BitDB_nelem($DB);
 
-        my $results = BitDB_inter_count_cpu( $db1, $db2, $opts );
+        my $results = BitDB_inter_count_cpu( $db1, $DB, $opts );
         my $scalar    = buffer_to_scalar $results, $nelem * $Config{intsize};
         my @DB_counts = unpack( "i[$nelem]", $scalar );
         free $results;
@@ -1065,7 +736,7 @@ The code for the benchmark runs as a commandline command script and is the follo
     }
 
     sub database_match_container_cpu_pdl {
-        my ( $db1, $db2, $num_threads ) = @_;
+        my ( $db1, $DB, $num_threads ) = @_;
 
         # Create the options structure for CPU processing
         my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new(
@@ -1077,9 +748,9 @@ The code for the benchmark runs as a commandline command script and is the follo
             release_2nd_operand => 0,
             release_counts      => 0
         );
-        my $nelem = BitDB_nelem($db1) * BitDB_nelem($db2);
+        my $nelem = BitDB_nelem($db1) * BitDB_nelem($DB);
 
-        my $results = BitDB_inter_count_cpu( $db1, $db2, $opts );
+        my $results = BitDB_inter_count_cpu( $db1, $DB, $opts );
         my $pdl = mkndarray( $results, $PDL_L, [$nelem], 1 );
         my $max = $pdl->max();
 
@@ -1089,12 +760,12 @@ The code for the benchmark runs as a commandline command script and is the follo
     }
 
     sub database_match_container_gpu {
-        my ( $db1, $db2, $opts_ref ) = @_;
+        my ( $db1, $DB, $opts_ref ) = @_;
 
         my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new(@$opts_ref);
 
-        my $results = BitDB_inter_count_gpu( $db1, $db2, $opts );
-        my $nelem = BitDB_nelem($db1) * BitDB_nelem($db2);
+        my $results = BitDB_inter_count_gpu( $db1, $DB, $opts );
+        my $nelem = BitDB_nelem($db1) * BitDB_nelem($DB);
         my $scalar    = buffer_to_scalar $results, $nelem * $Config{intsize};
         my @DB_counts = unpack( "i[$nelem]", $scalar );
         free $results;
@@ -1106,12 +777,12 @@ The code for the benchmark runs as a commandline command script and is the follo
     }
 
     sub database_match_container_gpu_pdl {
-        my ( $db1, $db2, $opts_ref ) = @_;
+        my ( $db1, $DB, $opts_ref ) = @_;
 
         my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new(@$opts_ref);
 
-        my $results = BitDB_inter_count_gpu( $db1, $db2, $opts );
-        my $nelem = BitDB_nelem($db1) * BitDB_nelem($db2);
+        my $results = BitDB_inter_count_gpu( $db1, $DB, $opts );
+        my $nelem = BitDB_nelem($db1) * BitDB_nelem($DB);
         my $pdl = mkndarray( $results, $PDL_L, [$nelem], 1 );
         my $max = $pdl->max();
         undef $pdl;
@@ -1163,7 +834,7 @@ The code for the benchmark runs as a commandline command script and is the follo
         my $t0 = [gettimeofday];
 
         # In a real implementation, this would use the actual container functions
-        $max = database_match_container_cpu( $db1, $db2, $threads );
+        $max = database_match_container_cpu( $db1, $DB, $threads );
         my $t1         = [gettimeofday];
         my $total_time = tv_interval( $t0, $t1 );
 
@@ -1187,7 +858,7 @@ The code for the benchmark runs as a commandline command script and is the follo
 
     for my $rep ( 1 .. 3 ) {
         my $t0 = [gettimeofday];
-        $max = database_match_container_gpu( $db1, $db2, \@gpu_configs );
+        $max = database_match_container_gpu( $db1, $DB, \@gpu_configs );
         my $t1         = [gettimeofday];
         my $total_time = tv_interval( $t0, $t1 );
 
@@ -1205,12 +876,12 @@ The code for the benchmark runs as a commandline command script and is the follo
         release_2nd_operand => 1,
         release_counts      => 1
     );
-    $max = database_match_container_gpu( $db1, $db2, \@gpu_configs_purge );
+    $max = database_match_container_gpu( $db1, $DB, \@gpu_configs_purge );
 
     print "CPU container operations with PDL memory access ...\n";
     for my $threads ( 1 .. $max_threads ) {
         my $t0 = [gettimeofday];
-        $max = database_match_container_cpu_pdl( $db1, $db2, $threads );
+        $max = database_match_container_cpu_pdl( $db1, $DB, $threads );
         my $t1         = [gettimeofday];
         my $total_time = tv_interval( $t0, $t1 );
 
@@ -1222,7 +893,7 @@ The code for the benchmark runs as a commandline command script and is the follo
     print "GPU container operations with PDL memory access ...\n";
     for my $rep ( 1 .. 3 ) {
         my $t0 = [gettimeofday];
-        $max = database_match_container_gpu_pdl( $db1, $db2, \@gpu_configs );
+        $max = database_match_container_gpu_pdl( $db1, $DB, \@gpu_configs );
         my $t1         = [gettimeofday];
         my $total_time = tv_interval( $t0, $t1 );
 
@@ -1291,7 +962,7 @@ The code for the benchmark runs as a commandline command script and is the follo
     }
 
     BitDB_free( \$db1 );
-    BitDB_free( \$db2 );
+    BitDB_free( \$DB );
 
     print "Benchmark completed!\n";
 

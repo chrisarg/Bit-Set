@@ -2,17 +2,10 @@
 #include "perl.h"
 #include "XSUB.h"
 #include <stdbool.h>
+#include "macros_defs.h"
 
-typedef struct {
-    int device_id;
-    bool upd_1st_operand;
-    bool upd_2nd_operand;
-    bool release_1st_operand;
-    bool release_2nd_operand;
-    bool release_counts;
-} SETOP_COUNT_OPTS_t;
 
-MODULE = Bit::Set::DB::SETOP_COUNT_OPTS2    PACKAGE = Bit::Set::DB::SETOP_COUNT_OPTS2
+MODULE = Bit::Set::DB::SETOP_COUNT_OPTS    PACKAGE = Bit::Set::DB::SETOP_COUNT_OPTS
 
 PROTOTYPES: DISABLE
 
@@ -20,11 +13,12 @@ SV*
 new(class, ...)
     char* class
 CODE:
-    SETOP_COUNT_OPTS_t* opts;
-    Newz(0, opts, 1, SETOP_COUNT_OPTS_t);
+    SETOP_COUNT_OPTS_t opts;
+    Newz(0, opts, 1, SETOP_COUNT_OPTS);
     
     /* Set defaults */
-    *opts = (SETOP_COUNT_OPTS_t){
+    *opts = (SETOP_COUNT_OPTS){
+        .num_cpu_threads = 0,
         .device_id = 0,
         .upd_1st_operand = false,
         .upd_2nd_operand = false,
@@ -61,7 +55,8 @@ CODE:
         
         if (args) {
             SV** svp;
-            
+             if ((svp = hv_fetch(args, "num_cpu_threads", 15, 0))) 
+                opts->device_id = SvIV(*svp);           
             if ((svp = hv_fetch(args, "device_id", 9, 0))) 
                 opts->device_id = SvIV(*svp);
             if ((svp = hv_fetch(args, "upd_1st_operand", 15, 0))) 
@@ -81,23 +76,33 @@ CODE:
         }
     }
     
-    ST(0) = sv_newmortal();
-    sv_setiv(newSVrv(ST(0), class), PTR2IV(opts));
+    RETURN_BLESSED_REFERENCE(class,opts);
+
 
 void
 DESTROY(obj)
     SV* obj
 CODE:
     if (SvROK(obj)) {
-        SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+        SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
         if (opts) Safefree(opts);
     }
+
+int 
+num_cpu_threads(obj, ...)
+SV* obj
+CODE:
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
+    if (items > 1) opts->num_cpu_threads = SvIV(ST(1));
+    RETVAL = opts->num_cpu_threads;
+OUTPUT:
+    RETVAL
 
 int
 device_id(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->device_id = SvIV(ST(1));
     RETVAL = opts->device_id;
 OUTPUT:
@@ -107,7 +112,7 @@ bool
 upd_1st_operand(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->upd_1st_operand = SvTRUE(ST(1));
     RETVAL = opts->upd_1st_operand;
 OUTPUT:
@@ -117,7 +122,7 @@ bool
 upd_2nd_operand(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->upd_2nd_operand = SvTRUE(ST(1));
     RETVAL = opts->upd_2nd_operand;
 OUTPUT:
@@ -127,7 +132,7 @@ bool
 release_1st_operand(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->release_1st_operand = SvTRUE(ST(1));
     RETVAL = opts->release_1st_operand;
 OUTPUT:
@@ -137,7 +142,7 @@ bool
 release_2nd_operand(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->release_2nd_operand = SvTRUE(ST(1));
     RETVAL = opts->release_2nd_operand;
 OUTPUT:
@@ -147,7 +152,7 @@ bool
 release_counts(obj, ...)
     SV* obj
 CODE:
-    SETOP_COUNT_OPTS_t* opts = (SETOP_COUNT_OPTS_t*)SvIV(SvRV(obj));
+    SETOP_COUNT_OPTS_t opts = (SETOP_COUNT_OPTS_t)SvIV(SvRV(obj));
     if (items > 1) opts->release_counts = SvTRUE(ST(1));
     RETVAL = opts->release_counts;
 OUTPUT:

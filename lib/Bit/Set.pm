@@ -17,10 +17,12 @@ our @EXPORT_OK = qw(
   Bit_eq Bit_leq Bit_lt
   Bit_diff Bit_inter Bit_minus Bit_union
   Bit_diff_count Bit_inter_count Bit_minus_count Bit_union_count
+  Bit_IVSIZE
 );
 our %EXPORT_TAGS = ( all => [ @EXPORT, @EXPORT_OK ] );
 
-
+use constant RETURN_PERL_ARRAY => 0;
+use constant RETURN_RAW_BUFFER => 1;
 1;
 
 __END__
@@ -234,9 +236,12 @@ creating a new bitset.
 
 =back
 
+
+
 =head1 EXAMPLES
 
-Examples of the use of the C<Bit::Set> module. Many of these examples are lifted from the test suite. Others are Perl "translations" of the original C benchmarks.
+Examples of the use of the C<Bit::Set> module. Many of these examples are lifted 
+from the test suite. Others are Perl "translations" of the original C benchmarks.
 
 =over 4
 

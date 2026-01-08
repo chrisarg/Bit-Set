@@ -4,30 +4,52 @@ package Bit::Set::DB::OO;
 use strict;
 use warnings;
 
-use Alien::Bit;
-use Bit::Set::DB qw( :all );
-use Bit::Set::OO;
-use FFI::Platypus;
+XSLoader::load('Bit::Set::DB');
+# Load the XS-based SETOP_COUNT_OPTS class
+use Bit::Set::DB::SETOP_COUNT_OPTS;
 
-###############################################################################
-# Code for the OO interface
-# The functions in the OO interface are named identically to the procedural one
-# sans the prefix "BitDB_"
+1;
 
-# Creation and Destruction
+__END__
 
-package Bit::Set::DB {
+=head1 NAME
 
-    sub new {
-        my ( $class, $length, $num_of_bitsets ) = @_;
-        my $self = BitDB_new( $length, $num_of_bitsets );
-        return bless \$self, $class;
-    }
+Bit::Set::DB::OO - XS-based SETOP_COUNT_OPTS for BitDB set operations (OO interface)
 
-    sub DESTROY {
-        my ($self) = @_;
-        BitDB_free($self);
-    }
+=head1 SYNOPSIS
+
+    use Bit::Set::DB::OO;
+    
+    # Create an options object for set operations
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new();
+    my $OPTS = Bit::Set::DB::SETOP_COUNT_OPTS->new({
+        device_id => 1,
+        upd_1st_operand => 1,
+        upd_2nd_operand => 0,
+        release_1st_operand => 1,
+        release_2nd_operand => 1,
+        release_counts => 1
+    });
+
+=head1 DESCRIPTION
+
+This module provides access to the XS-based SETOP_COUNT_OPTS class for BitDB set operations.
+It no longer includes FFI functions and focuses solely on the XS implementation.
+
+=head1 SEE ALSO
+
+L<Bit::Set>, L<Bit::Set::DB>, L<Bit::Set::DB>, L<Bit::Set::DB::SETOP_COUNT_OPTS>
+
+=head1 AUTHOR
+
+chrisarg
+
+=head1 COPYRIGHT AND LICENSE
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
 
     sub load {
         my ( $class, $length, $num_of_bitsets, $buffer ) = @_;
@@ -177,7 +199,7 @@ package Bit::Set::DB {
         return BitDB_minus_count_gpu( $$self, $$other, $opts );
     }
 }
-
+=cut
 1;
 
 
@@ -415,14 +437,14 @@ them to C<Bit::Set::DB> containers using the OO interface.
 
     # Create BitDB containers
     my $db1 = Bit::Set::DB->new( $size, $num_of_bits );
-    my $db2 = Bit::Set::DB->new( $size, $num_of_ref_bits );
+    my $DB = Bit::Set::DB->new( $size, $num_of_ref_bits );
 
     # Now put the bitsets into the containers
     for my $i ( 0 .. $num_of_bits - 1 ) {
         $db1->put_at( $i, $bits[$i] );
     }
     for my $i ( 0 .. $num_of_ref_bits - 1 ) {
-        $db2->put_at( $i, $bitsets[$i] );
+        $DB->put_at( $i, $bitsets[$i] );
     }
 
 =item Example 2: Obtaining the counts of bitset operations using containers and OO
@@ -452,7 +474,7 @@ C<FFI::Platypus::Buffer> modules.
         release_2nd_operand => 0,
         release_counts      => 0
     );
-    my $nelem = $db1->nelem() * $db2->nelem();
+    my $nelem = $db1->nelem() * $DB->nelem();
 
     # Method 1: Using Perl arrays of Bit::Set
     my @cpu_set_counts;
@@ -464,7 +486,7 @@ C<FFI::Platypus::Buffer> modules.
     }
 
     # Method 2: Using Bit::Set::DB containers
-    my $cpu_DB_counts_ptr = $db1->inter_count_cpu( $db2, $opts );
+    my $cpu_DB_counts_ptr = $db1->inter_count_cpu( $DB, $opts );
 
     my $scalar = buffer_to_scalar $cpu_DB_counts_ptr, $nelem*$Config{intsize};
     my  @cpu_DB_counts = unpack( "i[$nelem]", $scalar );

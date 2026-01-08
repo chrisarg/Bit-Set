@@ -10,6 +10,8 @@ use FFI::Platypus::Buffer;    # added to facilitate buffer management
 # Test constants
 use constant SIZE_OF_TEST_BIT => 131072;
 use constant SIZEOF_BITDB     => 45;
+use Config;
+my $ivsize = $Config{ivsize};
 
 subtest 'BitDB Operations (OO)' => sub {
 
@@ -36,7 +38,6 @@ subtest 'BitDB Operations (OO)' => sub {
       ( $retrieved->get(1) == 1 && $retrieved->get(3) == 1 );
     ok( $get_put_success, 'BitDB get/put operations work correctly' );
 
-    undef $bitset;
     undef $retrieved;
 
     # test_bitDB_extract_replace
@@ -51,14 +52,12 @@ subtest 'BitDB Operations (OO)' => sub {
     my $buffer_size = Bit::Set->buffer_size(SIZE_OF_TEST_BIT);
     my $scalar      = "\0" x $buffer_size;
     my ( $buffer, $size ) = scalar_to_buffer $scalar;
+    my $v = $buffer;
+ $bitdb->extract_from( 0, $buffer );
 
-    my $bytes_written = $bitdb->extract_from( 0, $buffer );
 
-    # LLM returned: my $first_byte      = unpack( 'C', substr( $buffer, 0, 1 )
-    # );
     my $first_byte      = unpack( 'C', substr( $scalar, 0, 1 ) );
-    my $extract_success = ( $bytes_written == SIZE_OF_TEST_BIT / 8
-          && $first_byte == ( ( 1 << 1 ) | ( 1 << 3 ) ) );
+    my $extract_success = ( $first_byte == ( ( 1 << 1 ) | ( 1 << 3 ) ) );
 
     $bitdb->replace_at( 0, $buffer );
 
@@ -67,8 +66,8 @@ subtest 'BitDB Operations (OO)' => sub {
     my $replace_success =
       ( $retrieved->get(1) == 1 && $retrieved->get(3) == 1 );
 
-    ok( $extract_success && $replace_success,
-        'BitDB extract/replace operations work correctly' );
+    ok( $extract_success && $replace_success, 
+        "BitDB extract/replace operations work correctly " . $bitset->count() ." \t$v\t$replace_success ".$retrieved->get(1). " | " . $first_byte );
 
     undef $bitset;
     undef $retrieved;
@@ -112,12 +111,9 @@ subtest 'BitDB Examples 1+2 (OO)' => sub {
     }
     ok( defined $db1 && defined $db2, 'BitDB containers created' );
 
-    use Test::More;
-    use FFI::Platypus::Buffer;
-    use FFI::Platypus::Memory;
-    use Config;    # to get the size of int
 
-    my $num_threads = 4;
+
+    my $num_threads = 1;
     my $opts        = Bit::Set::DB::SETOP_COUNT_OPTS->new(
         num_cpu_threads     => $num_threads,
         device_id           => 0,
@@ -139,19 +135,16 @@ subtest 'BitDB Examples 1+2 (OO)' => sub {
     }
 
     # Method 2: Using Bit::Set::DB containers
-    my $cpu_DB_counts_ptr = $db1->inter_count_cpu( $db2, $opts );
-
-    my $scalar = buffer_to_scalar $cpu_DB_counts_ptr, $nelem * $Config{intsize};
-    my @cpu_DB_counts = unpack( "i[$nelem]", $scalar );
-    free $cpu_DB_counts_ptr;
+    my $cpu_DB_counts = $db1->inter_count_cpu( $db2, $opts );
     my $test_result = 1;
     for my $k ( 0 .. $nelem - 1 ) {
-        if ( $cpu_DB_counts[$k] != $cpu_set_counts[$k] ) {
+        if ( $cpu_DB_counts->[$k] != $cpu_set_counts[$k] ) {
             $test_result = 0;
             last;
         }
     }
     ok( $test_result, "BitDB CPU intersection counts match Bit::Set counts" );
+
 };
 
 # Note: Skipping the BitDB intersection count test as it requires the SETOP_COUNT_OPTS

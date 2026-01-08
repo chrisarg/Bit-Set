@@ -1,10 +1,10 @@
-package Bit::Set::DB::SETOP_COUNT_OPTS2;
+package Bit::Set::DB::SETOP_COUNT_OPTS;
 
 use strict;
 use warnings;
 
 require XSLoader;
-XSLoader::load('Bit::Set::DB::SETOP_COUNT_OPTS2');
+XSLoader::load('Bit::Set::DB::SETOP_COUNT_OPTS');
 
 1;
 
@@ -12,17 +12,17 @@ __END__
 
 =head1 NAME
 
-Bit::Set::DB::SETOP_COUNT_OPTS2 - Configuration options for container set operations
+Bit::Set::DB::SETOP_COUNT_OPTS - Configuration options for container set operations
 
 =head1 SYNOPSIS
 
-    use Bit::Set::DB::SETOP_COUNT_OPTS2;
+    use Bit::Set::DB::SETOP_COUNT_OPTS;
 
     # Create with default options
-    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS2->new();
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new();
 
     # Create with custom options for container operations
-    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS2->new({
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new({
         device_id => 1,              # Use GPU (0 = CPU, 1 = GPU)
         upd_1st_operand => 1,        # Update first container during operation
         upd_2nd_operand => 0,        # Don't update second container
@@ -32,7 +32,7 @@ Bit::Set::DB::SETOP_COUNT_OPTS2 - Configuration options for container set operat
     });
 
     # Or using key-value pairs
-    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS2->new(
+    my $opts = Bit::Set::DB::SETOP_COUNT_OPTS->new(
         device_id => 0,              # Use CPU
         release_counts => 1          # Release count results after operation
     );
@@ -50,7 +50,7 @@ and memory management for both input containers and output count results.
 
 =head2 new([%options])
 
-Creates a new SETOP_COUNT_OPTS2 object with configuration options for container operations.
+Creates a new SETOP_COUNT_OPTS object with configuration options for container operations.
 Can be called with no arguments for defaults, or with a hash reference of options, or with key-value pairs.
 
 =head2 device_id([$value])
