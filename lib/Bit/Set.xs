@@ -76,7 +76,7 @@ void BSOO_aset(Bit_T_obj obj, INTEGER_ARRAY_REF indices)
     CODE:
       AV *av = (AV *)SvRV(indices);
       int n = av_len(av) + 1;
-  ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
+      ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
       FILL_INT_ARRAY_FROM_AV(av, idx, n);
 
       Bit_aset(obj, idx, n);
@@ -93,7 +93,7 @@ void BSOO_aclear(Bit_T_obj obj, INTEGER_ARRAY_REF indices)
     CODE:
       AV *av = (AV *)SvRV(indices);
       int n = av_len(av) + 1;
-  ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
+      ALLOC_ARRAY_IN_STACK_OR_HEAP(idx,int,n);
       FILL_INT_ARRAY_FROM_AV(av, idx, n);
 
       Bit_aclear(obj, idx, n);

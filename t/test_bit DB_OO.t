@@ -53,7 +53,7 @@ subtest 'BitDB Operations (OO)' => sub {
     my $scalar      = "\0" x $buffer_size;
     my ( $buffer, $size ) = scalar_to_buffer $scalar;
     my $v = $buffer;
- $bitdb->extract_from( 0, $buffer );
+    $bitdb->extract_from( 0, $buffer );
 
 
     my $first_byte      = unpack( 'C', substr( $scalar, 0, 1 ) );
