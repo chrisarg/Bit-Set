@@ -4,7 +4,7 @@ Bit::Set - Perl procedural interface to the 'bit' C library
 
 # VERSION
 
-version 0.12
+version 0.13
 
 # SYNOPSIS
 
